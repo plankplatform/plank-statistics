@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+#react-container h1,
+#react-container h2,
+#react-container h3,
+#react-container h4,
+#react-container h5,
+#react-container h6,
+#react-container p,
+#react-container ul,
+#react-container li,
+#react-container a,
+#react-container table,
+#react-container th,
+#react-container td {
+  all: revert;
+}

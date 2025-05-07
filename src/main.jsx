@@ -10,7 +10,9 @@ import './index.css';
 // );
 
 ReactDOM.createRoot(document.getElementById('root')).render(
+  <div id="react-container" className="flex flex-col h-full w-full">
   <HashRouter>
     <App />
   </HashRouter>
+  </div>
 );

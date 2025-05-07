@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { myTheme } from '../styles/agTheme';
+import Loader from '../components/Loader';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -22,21 +23,21 @@ const GroupStats = () => {
       .finally(() => setLoading(false));
   }, [groupName]);
 
-  if (loading) return <div className="p-8">Caricamento...</div>;
+  if (loading) return <Loader />;
 
   const filteredData = statName ? data.filter((s) => s.title === statName) : data;
 
   return (
-    <div className="px-6 py-8 max-w-screen-xl mx-auto">
+    <div className="px-6 py-8 w-5/6 mx-auto">
       <Link to="/" className="text-blue-600 underline">
         ← Torna indietro
       </Link>
-      <h1 className="text-3xl font-bold mb-6 mt-4">{groupName}</h1>
+      <div className="text-5xl font-bold mb-6 mt-4">{groupName}</div>
       {filteredData.map((stat, idx) => (
         <div key={idx} className="mb-16 pt-10 border-t border-gray-200">
-          <h2 className="text-xl font-semibold mb-2">{stat.title}</h2>
+          <div className="text-3xl font-semibold mb-2">{stat.title}</div>
           {stat.description && <p className="mb-2 text-gray-600">{stat.description}</p>}
-          <div className="ag-theme-alpine" style={{ height: 500, width: '100%' }}>
+          <div className="ag-theme-alpine mb-12" style={{ width: '100%' }}>
             <AgGridReact
               rowData={stat.rows}
               columnDefs={stat.columns.map((c) => ({
