@@ -10,6 +10,7 @@ import { AllEnterpriseModule } from 'ag-grid-enterprise';
 import { AgChartsEnterpriseModule } from 'ag-charts-enterprise';
 import ExportMenu from '../components/ExportMenu';
 import { IntegratedChartsModule } from 'ag-grid-enterprise';
+import { ArrowLeft } from 'lucide-react';
 
 ModuleRegistry.registerModules([
   AllEnterpriseModule,
@@ -48,11 +49,7 @@ const GroupStats = () => {
   const filteredData = statName ? data.filter((s) => s.title === statName) : data;
 
   return (
-    <div className="px-6 py-8 w-5/6 mx-auto">
-      <Link to="/" className="text-blue-600 underline">
-        ← Torna indietro
-      </Link>
-      <div className="text-5xl font-bold mb-6 mt-4">{groupName}</div>
+    <div className="px-6 py-4 w-5/6 mx-auto">
       {filteredData.map((stat, idx) => {
         const castedRows = castNumericValues(stat.columns, stat.rows);
         const columnDefs = stat.columns.map((col) => {
@@ -66,16 +63,22 @@ const GroupStats = () => {
         });
 
         return (
-          <div key={idx} className="mb-16 pt-10 border-t border-gray-200">
-            <div className="text-3xl font-semibold mb-2">{stat.title}</div>
-            {stat.description && <p className="mb-2 text-gray-600">{stat.description}</p>}
-
-            <div className="flex justify-end mb-4">
-              <ExportMenu
-                gridRef={gridRef}
-                filename={`${groupName}-${stat.title}`}
-                sheetName={stat.title}
-              />
+          <div key={idx} className="mb-8 pt-8 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-2">
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/"
+                  className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-plank-blue transition"
+                  title="Torna indietro"
+                >
+                  <ArrowLeft className="w-8 h-8" />
+                </Link>
+                <div className="text-3xl font-bold text-gray-800">{groupName}</div>
+                <span className="text-xl text-gray-600">{stat.title}</span>
+              </div>
+              {stat.description && (
+                <p className="text-sm text-gray-500 text-right">{stat.description}</p>
+              )}
             </div>
 
             <div className="ag-theme-alpine mb-12" style={{ width: '100%' }}>
