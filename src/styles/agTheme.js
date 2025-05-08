@@ -7,7 +7,7 @@ export const myTheme = themeQuartz.withPart(iconSetMaterial).withParams({
   browserColorScheme: 'light',
   cellTextColor: '#000000',
   columnBorder: false,
-  fontFamily: 'Inter, sans-serif',
+  fontFamily: 'Roboto, sans-serif',
   foregroundColor: '#2d2e83',
   headerBackgroundColor: '#2d2e83',
   headerFontSize: 14,
