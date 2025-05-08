@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
+import { ModuleRegistry } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { myTheme } from '../styles/agTheme';
 import Loader from '../components/Loader';
-
-ModuleRegistry.registerModules([AllCommunityModule]);
-
+import { useRef } from 'react';
 import { apiFetch } from '../lib/api';
+import { AllEnterpriseModule } from 'ag-grid-enterprise';
+import ExportMenu from '../components/ExportMenu';
+
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 const GroupStats = () => {
   const { groupName, statName } = useParams();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const gridRef = useRef(null);
 
   useEffect(() => {
     setLoading(true);
@@ -37,8 +39,18 @@ const GroupStats = () => {
         <div key={idx} className="mb-16 pt-10 border-t border-gray-200">
           <div className="text-3xl font-semibold mb-2">{stat.title}</div>
           {stat.description && <p className="mb-2 text-gray-600">{stat.description}</p>}
+
+          <div className="flex justify-end mb-4">
+            <ExportMenu
+              gridRef={gridRef}
+              filename={`${groupName}-${stat.title}`}
+              sheetName={stat.title}
+            />
+          </div>
+
           <div className="ag-theme-alpine mb-12" style={{ width: '100%' }}>
             <AgGridReact
+              ref={gridRef}
               rowData={stat.rows}
               columnDefs={stat.columns.map((c) => ({
                 field: c,
