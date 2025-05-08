@@ -8,16 +8,17 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiFetch('v1/stats/groups').then(setGroups).catch(console.error).finally(() => setLoading(false));;
+    apiFetch('v1/stats/groups')
+      .then(setGroups)
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <Loader />;
 
   return (
     <div className="p-8 w-5/6 mx-auto">
-      <div className="text-5xl font-extrabold mb-6">
-        Statistiche disponibili:
-      </div>
+      <h1 className="text-5xl text-red-500 font-extrabold mb-6">Statistiche disponibili:</h1>
       <div className="grid gap-6">
         {groups.map((group) => (
           <GroupCard key={group.group} group={group.group} stats={group.stats} />
