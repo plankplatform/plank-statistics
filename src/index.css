@@ -1,17 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
 @import 'tailwindcss';
 
 @theme {
   --color-plank-blue: #2d2e83;
   --color-plank-pink: #e72175;
   --color-plank-gray: #f9f9f9;
-}
-
-#react-container {
-  font-family: 'Roboto', sans-serif !important;
-}
-
-#react-container * {
-  font-family: inherit !important;
 }
