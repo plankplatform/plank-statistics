@@ -41,7 +41,15 @@ if (env === 'local') {
   }
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+let container;
+
+if (env === 'local') {
+  container = document.getElementById('root');
+} else {
+  container = window.__SHADOW_ROOT__.getElementById('root');
+}
+
+ReactDOM.createRoot(container).render(
   <div id="react-container" className="flex flex-col h-full w-full">
     <HashRouter>
       <App />
