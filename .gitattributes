@@ -1,2 +1,2 @@
-/plank/plank-statistics/dist/* linguist-generated
-/plank/plank-statistics/dist/* -diff
+dist/* linguist-generated
+dist/* -diff
