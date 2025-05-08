@@ -1,38 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-@import "tailwindcss";
+
+@import 'tailwindcss';
 
 @theme {
-    --color-plank-blue:  #2d2e83;
-    --color-plank-pink:  #e72175;
-    --color-plank-gray:  #f9f9f9;
-}
-  
-
-#react-container h1,
-#react-container h2,
-#react-container h3,
-#react-container h4,
-#react-container h5,
-#react-container h6,
-#react-container p,
-#react-container ul,
-#react-container li,
-#react-container a,
-#react-container table,
-#react-container th,
-#react-container td {
-  all: revert;
-}
-
-body {
-  font-family: 'Inter', sans-serif;
-}
-
-#react-container {
-  font-family: 'Roboto', sans-serif !important;
-}
-
-#react-container * {
-  font-family: inherit !important;
+  --color-plank-blue: #2d2e83;
+  --color-plank-pink: #e72175;
+  --color-plank-gray: #f9f9f9;
 }
