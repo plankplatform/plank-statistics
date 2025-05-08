@@ -56,7 +56,7 @@ const GroupStats = () => {
           const isNumeric = castedRows.every((row) => typeof row[col] === 'number');
           return {
             field: col,
-            filter: true,
+            filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
             sortable: true,
             type: isNumeric ? 'numericColumn' : undefined,
           };
