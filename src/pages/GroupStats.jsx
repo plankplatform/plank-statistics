@@ -57,13 +57,18 @@ const GroupStats = () => {
               xKey: 'Operator',
               yKey: 'tot',
               yName: 'Tot',
-              tooltip: {
-                position: {
-                  type: 'pointer', // posiziona vicino al mouse
-                  xOffset: 0,
-                  yOffset: 0,
-                },
-              },
+            },
+            {
+              type: 'bar',
+              xKey: 'Operator',
+              yKey: 'inbound',
+              yName: 'Inbound',
+            },
+            {
+              type: 'bar',
+              xKey: 'Operator',
+              yKey: 'outbound',
+              yName: 'Outbound',
             },
           ],
           legend: { enabled: true },
