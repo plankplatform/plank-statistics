@@ -58,31 +58,11 @@ const GroupStats = () => {
               yKey: 'tot',
               yName: 'Tot',
               tooltip: {
-                renderer: ({ xValue, yValue }) => ({
-                  content: `Tot: ${yValue} (${xValue})`,
-                }),
-              },
-            },
-            {
-              type: 'bar',
-              xKey: 'Operator',
-              yKey: 'inbound',
-              yName: 'Inbound',
-              tooltip: {
-                renderer: ({ xValue, yValue }) => ({
-                  content: `Inbound: ${yValue} (${xValue})`,
-                }),
-              },
-            },
-            {
-              type: 'bar',
-              xKey: 'Operator',
-              yKey: 'outbound',
-              yName: 'Outbound',
-              tooltip: {
-                renderer: ({ xValue, yValue }) => ({
-                  content: `Outbound: ${yValue} (${xValue})`,
-                }),
+                position: {
+                  type: 'pointer', // posiziona vicino al mouse
+                  xOffset: 0,
+                  yOffset: 0,
+                },
               },
             },
           ],
@@ -155,12 +135,12 @@ const GroupStats = () => {
                 paginationPageSize={25}
                 onGridReady={(params) => params.api.sizeColumnsToFit()}
               />
-              {groupName === 'CALL CENTER' && stat.title === 'Operator Calls' && (
-                <div className="w-full mt-12 my-12">
-                  <AgCharts options={chartOptions} />
-                </div>
-              )}
             </div>
+            {groupName === 'CALL CENTER' && stat.title === 'Operator Calls' && (
+              <div className="w-full mt-12 my-12">
+                <AgCharts options={chartOptions} />
+              </div>
+            )}
             {stat.footer && <p className="mt-2 text-sm text-gray-500">{stat.footer}</p>}
           </div>
         );
