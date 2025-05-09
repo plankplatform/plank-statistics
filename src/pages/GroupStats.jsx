@@ -11,6 +11,7 @@ import { AgChartsEnterpriseModule } from 'ag-charts-enterprise';
 import ExportMenu from '../components/ExportMenu';
 import { IntegratedChartsModule } from 'ag-grid-enterprise';
 import { ArrowLeft } from 'lucide-react';
+import { AgCharts } from 'ag-charts-react';
 
 ModuleRegistry.registerModules([
   AllEnterpriseModule,
@@ -35,11 +36,69 @@ const GroupStats = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const gridRef = useRef(null);
+  const [chartOptions, setChartOptions] = useState({ data: [], series: [] });
 
   useEffect(() => {
     setLoading(true);
     apiFetch(`v1/stats?group=${encodeURIComponent(groupName)}`)
-      .then(setData)
+      .then((rawData) => {
+        const transformed = rawData.map((stat) => ({
+          ...stat,
+          rows: castNumericValues(stat.columns, stat.rows),
+        }));
+        setData(transformed);
+
+        const allRows = transformed.flatMap((stat) => stat.rows);
+        setChartOptions({
+          data: allRows.slice(0, 10),
+          series: [
+            {
+              type: 'bar',
+              xKey: 'Operator',
+              yKey: 'tot',
+              yName: 'Tot',
+              tooltip: {
+                renderer: ({ xValue, yValue }) => ({
+                  content: `Tot: ${yValue} (${xValue})`,
+                }),
+              },
+            },
+            {
+              type: 'bar',
+              xKey: 'Operator',
+              yKey: 'inbound',
+              yName: 'Inbound',
+              tooltip: {
+                renderer: ({ xValue, yValue }) => ({
+                  content: `Inbound: ${yValue} (${xValue})`,
+                }),
+              },
+            },
+            {
+              type: 'bar',
+              xKey: 'Operator',
+              yKey: 'outbound',
+              yName: 'Outbound',
+              tooltip: {
+                renderer: ({ xValue, yValue }) => ({
+                  content: `Outbound: ${yValue} (${xValue})`,
+                }),
+              },
+            },
+          ],
+          legend: { enabled: true },
+          axes: [
+            { type: 'number', position: 'left', title: { text: 'Calls' } },
+            { type: 'category', position: 'bottom', title: { text: 'Operator' } },
+          ],
+          title: {
+            text: 'Operator Calls',
+            fontSize: 18,
+            fontWeight: 'bold',
+          },
+          height: 500,
+        });
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [groupName]);
@@ -51,7 +110,8 @@ const GroupStats = () => {
   return (
     <div className="px-6 py-4 w-5/6 mx-auto">
       {filteredData.map((stat, idx) => {
-        const castedRows = castNumericValues(stat.columns, stat.rows);
+        const castedRows = stat.rows;
+        console.log(castedRows.slice(0, 10));
         const columnDefs = stat.columns.map((col) => {
           const isNumeric = castedRows.every((row) => typeof row[col] === 'number');
           return {
@@ -81,7 +141,7 @@ const GroupStats = () => {
               )}
             </div>
 
-            <div className="ag-theme-alpine mb-12" style={{ width: '100%' }}>
+            <div className="w-full">
               <AgGridReact
                 ref={gridRef}
                 enableContextMenu={true}
@@ -95,6 +155,11 @@ const GroupStats = () => {
                 paginationPageSize={25}
                 onGridReady={(params) => params.api.sizeColumnsToFit()}
               />
+              {groupName === 'CALL CENTER' && stat.title === 'Operator Calls' && (
+                <div className="w-full mt-12 my-12">
+                  <AgCharts options={chartOptions} />
+                </div>
+              )}
             </div>
             {stat.footer && <p className="mt-2 text-sm text-gray-500">{stat.footer}</p>}
           </div>
