@@ -2,7 +2,9 @@
 
 **Creazione della pagina custom**
 
-La pagina viene creata tramite UI di Runner. Dentro allo snippet `PageEvents / plank_statistics_dashboard / snippet.php` possiamo scrivere il nostro contenuto custom. Il file snippet.php esegue le seguenti operazioni:
+La pagina viene creata tramite UI di Runner.
+Dentro allo snippet `/PageEvents/plank_statistics_dashboard/snippet.php` possiamo scrivere il nostro contenuto custom.
+Il file _snippet.php_ esegue le seguenti operazioni:
 
 ```php
 <?php
@@ -108,7 +110,7 @@ Se siamo in dev o produzione:
 
 - Monta l’app React dentro al nodo `#root` situato nello Shadow DOM (`window.__SHADOW_ROOT__`).
 
-Il render React è definito così, in main.jsx:
+Il render React è definito così, in _main.jsx_:
 
 ```jsx
 import React from 'react';
@@ -169,12 +171,11 @@ Il resto è una normale app React.
 
 Note:
 
-Il contenitore `#react-container` usa classi Tailwind (`flex flex-col w-full overflow-x-hidden !text-black !bg-gray-100 !text-xl`) per:
+Il contenitore `#react-container` usa le classi Tailwind (`flex flex-col w-full overflow-x-hidden !text-black !bg-gray-100 !text-xl`) per:
 
 - evitare lo scroll orizzontale
 - garantire la larghezza piena
-- sovrascrivere eventuali stili ereditati dal browser o da PHP Runner
-- impostare colori e dimensione del testo coerenti
+- sovrascrivere eventuali stili ereditati dal browser
 
 Viene usato `HashRouter` per evitare conflitti di routing con Apache in ambienti non SPA.
 
