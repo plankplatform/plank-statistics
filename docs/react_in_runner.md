@@ -2,7 +2,7 @@
 
 **Creazione della pagina custom**
 
-La pagina viene creata in `PageEvents / plank_statistics_dashboard / snippet.php`. Il file PHP esegue le seguenti operazioni:
+La pagina viene creata tramite UI di Runner. Dentro allo snippet `PageEvents / plank_statistics_dashboard / snippet.php` possiamo scrivere il nostro contenuto custom. Il file snippet.php esegue le seguenti operazioni:
 
 ```php
 <?php
@@ -92,7 +92,7 @@ echo '
 **Cosa fa lo script PHP**
 
 1. Recupera il token salvato in `$_SESSION['api_token']` (impostato dopo il login in `PageEvents/plank_login_page/after_successful.php`) e lo salva in `sessionStorage`, da cui l'app React si aspetta di leggerlo.
-2. Imposta regole CSS per garantire che il contenitore dell'app React si espanda correttamente all'interno del layout di PHP Runner e che non venga limitato dai contenitori tabellari.
+2. Imposta regole CSS per garantire che il contenitore dell'app React si espanda correttamente all'interno del layout di PHP Runner e che non venga limitato dai contenitori di Runner.
 3. Nasconde il `#footer` di Runner che potrebbe coprire elementi interattivi.
 4. Crea il contenitore `#shadow-host` e monta uno Shadow DOM per isolare l'app React dal CSS di Runner.
 5. Inietta dinamicamente i file `index.css` e `index.js` risultanti dalla build React.
@@ -108,9 +108,51 @@ Se siamo in dev o produzione:
 
 - Monta l’app React dentro al nodo `#root` situato nello Shadow DOM (`window.__SHADOW_ROOT__`).
 
-Il render React è definito così:
+Il render React è definito così, in main.jsx:
 
 ```jsx
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { HashRouter } from 'react-router-dom';
+import App from './App';
+import './index.css';
+
+const env = import.meta.env.VITE_APP_ENV;
+
+console.log('Environment:', env);
+
+if (env === 'local') {
+  if (sessionStorage.getItem('apitoken')) {
+    console.log('API token already set in sessionStorage');
+  } else {
+    const response = await fetch('https://api-dev.plank.global/v1/auth/user/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userid: import.meta.env.VITE_API_USER,
+        password: import.meta.env.VITE_API_PASSWORD,
+      }),
+    });
+
+    const data = await response.json();
+    if (data.jwt) {
+      sessionStorage.setItem('apitoken', data.jwt);
+    } else {
+      console.error('Failed to fetch API token:', data);
+    }
+  }
+}
+
+let container;
+
+if (env === 'local') {
+  container = document.getElementById('root');
+} else {
+  container = window.__SHADOW_ROOT__.getElementById('root');
+}
+
 ReactDOM.createRoot(container).render(
   <div
     id="react-container"
@@ -123,6 +165,10 @@ ReactDOM.createRoot(container).render(
 );
 ```
 
+Il resto è una normale app React.
+
+Note:
+
 Il contenitore `#react-container` usa classi Tailwind (`flex flex-col w-full overflow-x-hidden !text-black !bg-gray-100 !text-xl`) per:
 
 - evitare lo scroll orizzontale
@@ -131,12 +177,6 @@ Il contenitore `#react-container` usa classi Tailwind (`flex flex-col w-full ove
 - impostare colori e dimensione del testo coerenti
 
 Viene usato `HashRouter` per evitare conflitti di routing con Apache in ambienti non SPA.
-
-**Gestione dell’ambiente di sviluppo**
-
-Nel file `.env.local` è definita la variabile `VITE_APP_ENV=local` per distinguere lo sviluppo dal deployment.
-
-Se l'app è in locale e il token non è presente in `sessionStorage`, viene effettuata una chiamata `POST` all’API di login per ottenere un token valido.
 
 **Evoluzioni previste**
 
