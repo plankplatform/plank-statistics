@@ -22,6 +22,7 @@ echo '
     #form_grid_1, #form_grid_1 > tbody,
     #form_grid_1 > tbody > tr,
     #form_grid_1 > tbody > tr > td,
+    #form_top_1,
     .r-ori-vert {
       height: auto !important;
       width: 100% !important;
@@ -33,6 +34,7 @@ echo '
       max-height: none !important;
       position: relative !important;
       overflow: visible !important;
+      background-color: white !important;
     }
 
     #shadow-host {
@@ -40,6 +42,7 @@ echo '
       width: 100%;
       height: auto;
       min-height: 100vh;
+      background-color: white !important;
     }
 
     #shadow-host > #root {

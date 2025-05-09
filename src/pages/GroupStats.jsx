@@ -126,6 +126,11 @@ const GroupStats = () => {
               )}
             </div>
 
+            {groupName === 'CALL CENTER' && stat.title === 'Operator Calls' && (
+              <div className="w-full mt-12 my-12">
+                <AgCharts options={chartOptions} />
+              </div>
+            )}
             <div className="w-full">
               <AgGridReact
                 ref={gridRef}
@@ -141,11 +146,6 @@ const GroupStats = () => {
                 onGridReady={(params) => params.api.sizeColumnsToFit()}
               />
             </div>
-            {groupName === 'CALL CENTER' && stat.title === 'Operator Calls' && (
-              <div className="w-full mt-12 my-12">
-                <AgCharts options={chartOptions} />
-              </div>
-            )}
             {stat.footer && <p className="mt-2 text-sm text-gray-500">{stat.footer}</p>}
           </div>
         );

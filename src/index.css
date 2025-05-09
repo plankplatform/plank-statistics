@@ -8,3 +8,7 @@
   --color-plank-pink: #e72175;
   --color-plank-gray: #f9f9f9;
 }
+
+#react-container {
+  font-family: 'Roboto', sans-serif !important;
+}

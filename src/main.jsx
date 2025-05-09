@@ -52,7 +52,7 @@ if (env === 'local') {
 ReactDOM.createRoot(container).render(
   <div
     id="react-container"
-    className="flex flex-col w-full overflow-x-hidden !text-black !bg-gray-100 !text-xl"
+    className="flex flex-col w-full overflow-x-hidden !text-black !bg-white !text-xl"
   >
     <HashRouter>
       <App />
