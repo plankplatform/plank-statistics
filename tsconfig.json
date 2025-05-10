@@ -13,7 +13,8 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noEmit": true,
   },
   "include": ["vite-env.d.ts", "src"]
 }
