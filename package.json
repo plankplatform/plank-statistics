@@ -10,16 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-accordion": "^1.2.10",
     "@tailwindcss/vite": "^4.1.5",
     "ag-charts-enterprise": "^11.2.4",
     "ag-charts-react": "^11.2.4",
     "ag-grid-community": "^33.2.4",
     "ag-grid-enterprise": "^33.2.4",
     "ag-grid-react": "^33.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.508.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.3",
+    "tailwind-merge": "^3.2.0",
     "tailwindcss": "^4.1.5"
   },
   "devDependencies": {
@@ -31,6 +35,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "tw-animate-css": "^1.2.9",
     "typescript": "^5.8.3",
     "vite": "^6.3.1"
   }
