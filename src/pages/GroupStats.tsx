@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ModuleRegistry } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { myTheme } from '../styles/agTheme';
 import Loader from '../components/Loader';
-import { useRef } from 'react';
 import { apiFetch } from '../lib/api';
 import { AllEnterpriseModule } from 'ag-grid-enterprise';
 import { AgChartsEnterpriseModule } from 'ag-charts-enterprise';
@@ -12,15 +11,16 @@ import ExportMenu from '../components/ExportMenu';
 import { IntegratedChartsModule } from 'ag-grid-enterprise';
 import { ArrowLeft } from 'lucide-react';
 import { AgCharts } from 'ag-charts-react';
+import type { AgChartOptions } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([
   AllEnterpriseModule,
   IntegratedChartsModule.with(AgChartsEnterpriseModule),
 ]);
 
-function castNumericValues(columns, rows) {
+function castNumericValues(columns: string[], rows: Record<string, any>[]) {
   return rows.map((row) => {
-    const newRow = { ...row };
+    const newRow: Record<string, any> = { ...row };
     columns.forEach((col) => {
       const val = row[col];
       if (val !== null && val !== '' && !isNaN(val)) {
@@ -31,17 +31,35 @@ function castNumericValues(columns, rows) {
   });
 }
 
-const GroupStats = () => {
-  const { groupName, statName } = useParams();
-  const [data, setData] = useState([]);
+interface StatData {
+  title: string;
+  description?: string;
+  footer?: string;
+  columns: string[];
+  rows: Record<string, any>[];
+}
+
+interface RouteParams {
+  groupName?: string;
+  statName?: string;
+}
+
+const GroupStats: React.FC = () => {
+  const params = useParams();
+  const groupName = params.groupName ?? '';
+  const statName = params.statName;
+  const [data, setData] = useState<StatData[]>([]);
   const [loading, setLoading] = useState(true);
-  const gridRef = useRef(null);
-  const [chartOptions, setChartOptions] = useState({ data: [], series: [] });
+  const gridRef = useRef<AgGridReact | null>(null);
+  const [chartOptions, setChartOptions] = useState<AgChartOptions>({
+    data: [],
+    series: [],
+  });
 
   useEffect(() => {
     setLoading(true);
     apiFetch(`v1/stats?group=${encodeURIComponent(groupName)}`)
-      .then((rawData) => {
+      .then((rawData: StatData[]) => {
         const transformed = rawData.map((stat) => ({
           ...stat,
           rows: castNumericValues(stat.columns, stat.rows),
@@ -96,7 +114,6 @@ const GroupStats = () => {
     <div className="px-6 py-4 w-5/6 mx-auto">
       {filteredData.map((stat, idx) => {
         const castedRows = stat.rows;
-        console.log(castedRows.slice(0, 10));
         const columnDefs = stat.columns.map((col) => {
           const isNumeric = castedRows.every((row) => typeof row[col] === 'number');
           return {
@@ -134,7 +151,6 @@ const GroupStats = () => {
             <div className="w-full">
               <AgGridReact
                 ref={gridRef}
-                enableContextMenu={true}
                 enableCharts={true}
                 cellSelection={true}
                 rowData={castedRows}
