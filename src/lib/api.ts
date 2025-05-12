@@ -1,6 +1,10 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export const apiFetch = async (path, options = {}) => {
+interface ApiFetchOptions extends RequestInit {
+  headers?: Record<string, string>;
+}
+
+export async function apiFetch<T = any>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const token = sessionStorage.getItem('apitoken');
 
   const response = await fetch(`${BASE_URL}/${path}`, {
@@ -18,4 +22,4 @@ export const apiFetch = async (path, options = {}) => {
   }
 
   return response.json();
-};
+}

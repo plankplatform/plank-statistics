@@ -1,12 +1,23 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, MutableRefObject } from 'react';
+import type { AgGridReact } from 'ag-grid-react';
 
-const ExportMenu = ({ gridRef, filename = 'export', sheetName = 'Sheet1' }) => {
+interface ExportMenuProps {
+  gridRef: MutableRefObject<AgGridReact | null>;
+  filename?: string;
+  sheetName?: string;
+}
+
+const ExportMenu: React.FC<ExportMenuProps> = ({
+  gridRef,
+  filename = 'export',
+  sheetName = 'Sheet1',
+}) => {
   const [open, setOpen] = useState(false);
-  const menuRef = useRef();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };

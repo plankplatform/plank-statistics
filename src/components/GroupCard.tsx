@@ -1,7 +1,16 @@
-// src/components/GroupCard.jsx
 import { Link } from 'react-router-dom';
 
-const GroupCard = ({ group, stats }) => {
+interface Stat {
+  id: string | number;
+  title: string;
+}
+
+interface GroupCardProps {
+  group: string;
+  stats: Stat[];
+}
+
+const GroupCard: React.FC<GroupCardProps> = ({ group, stats }) => {
   return (
     <div className="bg-white p-6 rounded shadow">
       <h2 className="text-xl font-semibold mb-2">{group}</h2>

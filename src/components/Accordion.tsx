@@ -1,10 +1,25 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const Accordion = ({ items }) => {
-  const [openGroups, setOpenGroups] = useState(new Set());
+interface Stat {
+  id: string | number;
+  title: string;
+  description?: string;
+}
 
-  const toggleGroup = (groupName) => {
+interface Group {
+  group: string;
+  stats: Stat[];
+}
+
+interface AccordionProps {
+  items: Group[];
+}
+
+const Accordion: React.FC<AccordionProps> = ({ items }) => {
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+
+  const toggleGroup = (groupName: string) => {
     setOpenGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupName)) {
