@@ -34,28 +34,32 @@ const Home = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="px-8 py-10 w-5/6 mx-auto bg-white mt-12">
-      <Accordion type="multiple" className="w-full space-y-4">
+    <div className="px-8 py-10 w-5/6 mx-auto mt-12">
+      <Accordion type="multiple" className="w-full space-y-6">
         {groups.map((group) => (
           <AccordionItem key={group.group} value={group.group}>
-            <AccordionTrigger className="text-xl font-semibold text-gray-800">
+            <AccordionTrigger className="text-2xl font-bold text-plank-blue hover:text-plank-pink transition-colors">
               {group.group}
             </AccordionTrigger>
             <AccordionContent>
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="mt-4 flex flex-col gap-3">
                 {group.stats.map((stat) => (
                   <Link
-                    key={stat.id}
-                    to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(
-                      stat.title
-                    )}`}
-                    className="rounded-2xl border border-gray-200 bg-white shadow hover:shadow-lg transition-transform transform hover:scale-[1.02] block"
-                  >
-                    <div className="p-5">
-                      <h3 className="text-lg font-semibold text-gray-900">{stat.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">{stat.description}</p>
+                  key={stat.id}
+                  to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(stat.title)}`}
+                  className="text-left px-6 py-4 rounded-xl bg-plank-blue/5 hover:bg-plank-pink/10 transition-colors block"
+                >
+                  <div className="text-plank-blue font-semibold text-lg no-underline hover:no-underline">
+                    {stat.title}
+                  </div>
+                  {stat.description && (
+                    <div className="text-gray-700 text-sm mt-1 no-underline hover:no-underline">
+                      {stat.description}
                     </div>
-                  </Link>
+                  )}
+                </Link>
+                
+                
                 ))}
               </div>
             </AccordionContent>

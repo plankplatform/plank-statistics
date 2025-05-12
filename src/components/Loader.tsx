@@ -1,10 +1,11 @@
-const Loader = () => {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-gray-500 border-solid"></div>
-      </div>
-    );
-  };
-  
-  export default Loader;
-  
+import { cn } from '@/lib/utils';
+
+const Loader = ({ className }: { className?: string }) => {
+  return (
+    <div className={cn('flex justify-center items-center min-h-screen', className)}>
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-plank-blue border-t-transparent" />
+    </div>
+  );
+};
+
+export default Loader;
