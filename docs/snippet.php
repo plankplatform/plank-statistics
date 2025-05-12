@@ -61,6 +61,8 @@ echo '
   sessionStorage.setItem("apitoken", token);
 </script>
 
+<link rel="stylesheet" href="/plank/plank-statistics/dist/assets/index.css?v=' . $cacheBuster . '" />
+
 <div id="shadow-host"></div>
 
 <script type="module">

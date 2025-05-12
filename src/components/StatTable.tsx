@@ -5,7 +5,6 @@ interface StatTableProps {
   gridRef: React.RefObject<AgGridReact<any> | null>;
   rowData: Record<string, any>[];
   columnDefs: any[];
-  theme: string;
 }
 
 const StatTable = ({ gridRef, rowData, columnDefs }: StatTableProps) => {
