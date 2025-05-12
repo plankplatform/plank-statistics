@@ -17,19 +17,24 @@ const StatHeader = ({ groupName, title, description, viewChart, onToggle }: Stat
       <div className="flex items-center gap-3">
         <Link
           to="/"
-          className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-plank-blue transition"
+          className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-plank-blue transition"
           title="Torna indietro"
         >
           <ArrowLeft className="w-6 h-6" />
         </Link>
-        <div className="text-2xl font-bold text-foreground">{groupName}</div>
-        <span className="text-lg text-muted-foreground">{title}</span>
+        <div className="text-2xl font-bold text-plank-blue">{groupName}</div>
+        <span className="text-lg text-gray-700">{title}</span>
       </div>
       <div className="flex items-center gap-3">
-        <Label htmlFor="toggle-chart" className="text-sm text-muted-foreground">
+        <Label htmlFor="toggle-chart" className="text-sm text-gray-600">
           View chart
         </Label>
-        <Switch id="toggle-chart" checked={viewChart} onCheckedChange={onToggle} />
+        <Switch
+          id="toggle-chart"
+          checked={viewChart}
+          onCheckedChange={onToggle}
+          className="data-[state=checked]:bg-plank-blue"
+        />
       </div>
     </div>
   );
