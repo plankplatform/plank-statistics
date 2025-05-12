@@ -1,7 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import * as SwitchPrimitive from '@radix-ui/react-switch';
 
 interface StatHeaderProps {
   groupName: string;
@@ -26,15 +25,17 @@ const StatHeader = ({ groupName, title, description, viewChart, onToggle }: Stat
         <span className="text-lg text-gray-700">{title}</span>
       </div>
       <div className="flex items-center gap-3">
-        <Label htmlFor="toggle-chart" className="text-sm text-gray-600">
+        <label htmlFor="toggle-chart" className="text-sm text-gray-600">
           View chart
-        </Label>
-        <Switch
+        </label>
+        <SwitchPrimitive.Root
           id="toggle-chart"
           checked={viewChart}
           onCheckedChange={onToggle}
-          className="data-[state=checked]:bg-plank-blue"
-        />
+          className="relative w-11 h-6 bg-gray-300 data-[state=checked]:bg-plank-blue rounded-full outline-none transition-colors"
+        >
+          <SwitchPrimitive.Thumb className="block w-5 h-5 bg-white rounded-full shadow transition-transform translate-x-0 data-[state=checked]:translate-x-5" />
+        </SwitchPrimitive.Root>
       </div>
     </div>
   );
