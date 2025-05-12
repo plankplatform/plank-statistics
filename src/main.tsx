@@ -43,12 +43,7 @@ async function setup() {
 
   let container: HTMLElement | null;
 
-  if (env === 'local') {
-    container = document.getElementById('root');
-  } else {
-    // @ts-expect-error: __SHADOW_ROOT__ is a custom global
-    container = window.__SHADOW_ROOT__.getElementById('root');
-  }
+  container = document.getElementById('root');
 
   if (!container) {
     throw new Error('Root container not found');
