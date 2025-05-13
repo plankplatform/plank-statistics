@@ -100,7 +100,7 @@ const GroupStats = () => {
         });
 
         return (
-          <div key={idx} className="mb-8 pt-8 border-t border-gray-200">
+          <div key={idx} className="mb-8 pt-8">
             <StatHeader
               groupName={groupName}
               title={stat.title}

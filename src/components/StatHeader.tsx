@@ -13,7 +13,7 @@ interface StatHeaderProps {
 
 const StatHeader = ({ groupName, title, description, viewChart, onToggle }: StatHeaderProps) => {
   return (
-    <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-4">
+    <div className="flex items-center justify-between mb-4 pb-4">
       <div className="flex items-center gap-3">
         <Link
           to="/"
@@ -27,7 +27,7 @@ const StatHeader = ({ groupName, title, description, viewChart, onToggle }: Stat
       </div>
       <div className="flex items-center gap-3">
         <Label htmlFor="toggle-chart" className="text-sm text-gray-600">
-          View chart
+          View charts
         </Label>
         <Switch
           id="toggle-chart"
