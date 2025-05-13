@@ -21,7 +21,8 @@ async function setup() {
     if (sessionStorage.getItem('apitoken')) {
       console.log('API token already set in sessionStorage');
     } else {
-      const response = await fetch('https://api-us.plank.global/v1/auth/user/login', {
+      console.log('Fetching API token...');
+      const response = await fetch('https://api-dev.plank.global/v1/auth/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,12 +44,7 @@ async function setup() {
 
   let container: HTMLElement | null;
 
-  if (env === 'local') {
-    container = document.getElementById('root');
-  } else {
-    // @ts-expect-error: __SHADOW_ROOT__ is a custom global
-    container = window.__SHADOW_ROOT__.getElementById('root');
-  }
+  container = document.getElementById('root');
 
   if (!container) {
     throw new Error('Root container not found');
