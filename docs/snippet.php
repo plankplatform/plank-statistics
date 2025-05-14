@@ -13,11 +13,20 @@ echo '
       overflow: hidden;
     }
 
+    .r-topbar-page {
+      background-color: white;
+    }
+
     #iframe-host {
       width: 100%;
       height: 100vh;
       border: none;
       display: block;
+      scrollbar-width: none;
+    }
+
+    #iframe-host::-webkit-scrollbar {
+      display: none;
     }
 
     #footer:not(#react-wrapper > #footer) {

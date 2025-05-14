@@ -53,7 +53,7 @@ async function setup() {
   ReactDOM.createRoot(container).render(
     <div
       id="react-container"
-      className="flex flex-col w-full overflow-x-hidden !text-black !bg-white !text-xl mb-24"
+      className="flex flex-col w-full overflow-x-hidden h-screen overflow-y-scroll !text-black !bg-white !text-xl mb-24"
     >
       <HashRouter>
         <App />
