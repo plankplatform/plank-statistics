@@ -30,6 +30,7 @@ function castNumericValues(columns: string[], rows: Record<string, any>[]) {
 }
 
 interface StatData {
+  id: number | string;
   title: string;
   description?: string;
   footer?: string;
@@ -37,32 +38,43 @@ interface StatData {
   rows: Record<string, any>[];
 }
 
-const GroupStats = () => {
+const Stat = () => {
   const params = useParams();
   const groupName = params.groupName ?? '';
-  const statName = params.statName;
-  const [data, setData] = useState<StatData[]>([]);
+  const statId = Number(params.statId ?? '');
+  const [data, setData] = useState<StatData | null>(null);
   const [loading, setLoading] = useState(true);
-  const gridRef = useRef<AgGridReact>(null);
   const [viewChart, setViewChart] = useState(false);
   const [chartOptions, setChartOptions] = useState<AgChartOptions>({
     data: [],
     series: [],
   });
+  const gridRef = useRef<AgGridReact>(null);
 
   useEffect(() => {
-    setLoading(true);
-    apiFetch(`v1/stats?group=${encodeURIComponent(groupName)}`)
-      .then((rawData: StatData[]) => {
-        const transformed = rawData.map((stat) => ({
-          ...stat,
-          rows: castNumericValues(stat.columns, stat.rows),
-        }));
-        setData(transformed);
+    if (isNaN(statId)) return;
 
-        const allRows = transformed.flatMap((stat) => stat.rows);
+    setLoading(true);
+
+    apiFetch(`v1/stats/${statId}`)
+      .then((raw: any) => {
+        const columns: string[] = JSON.parse(raw.columns_order || '[]');
+        const rows: Record<string, any>[] = JSON.parse(raw.json_results || '[]');
+        const castedRows = castNumericValues(columns, rows);
+
+        const stat: StatData = {
+          id: raw.id,
+          title: raw.title,
+          description: raw.description,
+          footer: raw.footer,
+          columns,
+          rows: castedRows,
+        };
+
+        setData(stat);
+
         setChartOptions({
-          data: allRows.slice(0, 10),
+          data: castedRows,
           series: [
             { type: 'bar', xKey: 'Operator', yKey: 'tot', yName: 'Tot' },
             { type: 'bar', xKey: 'Operator', yKey: 'inbound', yName: 'Inbound' },
@@ -73,53 +85,46 @@ const GroupStats = () => {
             { type: 'number', position: 'left', title: { text: 'Calls' } },
             { type: 'category', position: 'bottom', title: { text: 'Operator' } },
           ],
-          title: { text: 'Operator Calls', fontSize: 18, fontWeight: 'bold' },
-          height: 500,
+          title: { text: raw.title, fontSize: 18, fontWeight: 'bold' },
+          height: 600,
         });
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [groupName]);
+  }, [statId]);
 
   if (loading) return <Loader />;
+  if (!data) return <p className="text-center text-gray-600 mt-12">Statistica non trovata</p>;
 
-  const filteredData = statName ? data.filter((s) => s.title === statName) : data;
+  const columnDefs = data.columns.map((col) => {
+    const isNumeric = data.rows.every((row) => typeof row[col] === 'number');
+    return {
+      field: col,
+      filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
+      sortable: true,
+      type: isNumeric ? 'numericColumn' : undefined,
+    };
+  });
 
   return (
     <div className="px-6 py-4 w-5/6 mx-auto">
-      {filteredData.map((stat, idx) => {
-        const castedRows = stat.rows;
-        const columnDefs = stat.columns.map((col) => {
-          const isNumeric = castedRows.every((row) => typeof row[col] === 'number');
-          return {
-            field: col,
-            filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
-            sortable: true,
-            type: isNumeric ? 'numericColumn' : undefined,
-          };
-        });
-
-        return (
-          <div key={idx} className="mb-8 pt-8">
-            <StatHeader
-              groupName={groupName}
-              title={stat.title}
-              description={stat.description}
-              viewChart={viewChart}
-              onToggle={setViewChart}
-            />
-            {viewChart && groupName === 'CALL CENTER' && stat.title === 'Operator Calls' && (
-              <StatCharts options={chartOptions} />
-            )}
-            {!viewChart && (
-              <StatTable gridRef={gridRef} rowData={castedRows} columnDefs={columnDefs} />
-            )}
-            {stat.footer && <p className="mt-2 text-sm text-muted-foreground">{stat.footer}</p>}
-          </div>
-        );
-      })}
+      <div className="mb-8 pt-8">
+        <StatHeader
+          groupName={groupName}
+          title={data.title}
+          description={data.description}
+          viewChart={viewChart}
+          onToggle={setViewChart}
+        />
+        {viewChart && groupName === 'CALL CENTER' && data.title === 'Operator Calls' ? (
+          <StatCharts options={chartOptions} />
+        ) : (
+          <StatTable gridRef={gridRef} rowData={data.rows} columnDefs={columnDefs} />
+        )}
+        {data.footer && <p className="mt-2 text-sm text-muted-foreground">{data.footer}</p>}
+      </div>
     </div>
   );
 };
 
-export default GroupStats;
+export default Stat;
