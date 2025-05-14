@@ -1,32 +1,33 @@
 import { themeQuartz, iconSetMaterial } from 'ag-grid-community';
 
 export const myTheme = themeQuartz.withPart(iconSetMaterial).withParams({
-  backgroundColor: '#ffffff',
+  fontFamily: 'Roboto, Helvetica Neue',
+  accentColor: '#2629B1',
+  borderColor: '#181D1F2E',
   browserColorScheme: 'light',
-
-  // testo
-  cellTextColor: '#1a1a1a',
-  headerTextColor: '#1a1a1a',
-  fontFamily: 'Roboto, sans-serif',
-  headerFontSize: 14,
-  headerFontWeight: 500,
-
-  // header grigio chiaro come lo screen
-  headerBackgroundColor: '#f0f0f0',
-
-  // righe alternate
-  oddRowBackgroundColor: '#fafafa',
-
-  // rimuove i bordi e padding minimal
   columnBorder: false,
-  rowBorder: false,
-  sidePanelBorder: false,
-  wrapperBorder: false,
+  headerFontSize: 14,
+  rowBorder: true,
 
-  // rimuove smussature
-  borderRadius: 0,
-  wrapperBorderRadius: 0,
+  // backgroundColor: '#ffffff',
+  // browserColorScheme: 'light',
 
-  // spacing sobrio
-  spacing: 8,
+  // cellTextColor: '#1a1a1a',
+  // headerTextColor: '#1a1a1a',
+  // headerFontSize: 14,
+  // headerFontWeight: 500,
+
+  // headerBackgroundColor: '#f0f0f0',
+
+  // oddRowBackgroundColor: '#fafafa',
+
+  // columnBorder: false,
+  // rowBorder: false,
+  // sidePanelBorder: false,
+  // wrapperBorder: false,
+
+  // borderRadius: 0,
+  // wrapperBorderRadius: 0,
+
+  // spacing: 8,
 });

@@ -58,7 +58,7 @@ const Home = () => {
 
   return (
     <div className="px-8 py-10 max-w-4xl font-medium mx-auto mt-12">
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex items-center justify-center gap-4 mb-8">
         <img
           src="https://www.plank.global/public/favicon.ico"
           alt="Plank Logo"

@@ -13,6 +13,10 @@
   --color-plank-gray: #f9f9f9;
 }
 
+.ag-center-cols-viewport {
+    min-height: 625px !important;
+}
+
 #react-container {
   font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
 }
