@@ -66,33 +66,39 @@ const Home = () => {
         />
         <h1 className="text-4xl text-gray-800">Plank Statistics</h1>
       </div>
-      <Accordion type="multiple" className="w-full space-y-6">
-        {groups.map((group) => (
-          <AccordionItem key={group.group} value={group.group}>
-            <AccordionTrigger className="text-xl text-black hover:text-gray-800 transition-colors">
-              {group.group}
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="mt-4 flex flex-col gap-2">
-                {group.stats.map((stat) => (
-                  <Link
-                    key={stat.id}
-                    to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(
-                      stat.id
-                    )}`}
-                    className="text-left px-6 py-4 bg-gray-100 hover:bg-gray-200 hover:shadow-sm transition-all block rounded-lg"
-                  >
-                    <div className="text-black text-lg">{stat.title}</div>
-                    {/* <div className="text-gray-500 text-sm mt-1">
+      {groups.length === 0 ? (
+        <div className="text-gray-500 text-sm text-center italic mt-24">
+          Non sono presenti statistiche.
+        </div>
+      ) : (
+        <Accordion type="multiple" className="w-full space-y-6">
+          {groups.map((group) => (
+            <AccordionItem key={group.group} value={group.group}>
+              <AccordionTrigger className="text-xl text-black hover:text-gray-800 transition-colors">
+                {group.group}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="mt-4 flex flex-col gap-2">
+                  {group.stats.map((stat) => (
+                    <Link
+                      key={stat.id}
+                      to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(
+                        stat.id
+                      )}`}
+                      className="text-left px-6 py-4 bg-gray-100 hover:bg-gray-200 hover:shadow-sm transition-all block rounded-lg"
+                    >
+                      <div className="text-black text-lg">{stat.title}</div>
+                      {/* <div className="text-gray-500 text-sm mt-1">
                       {stat.description || 'Ultimo aggiornamento: 02/05/2025'}
                     </div> */}
-                  </Link>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+                    </Link>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
     </div>
   );
 };
