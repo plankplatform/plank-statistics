@@ -1,17 +1,28 @@
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface StatHeaderProps {
   groupName: string;
   title: string;
   description?: string;
-  onSaveChart: () => void;
   hasChart: boolean;
+  onSaveChart: () => void;
+  view: 'table' | 'graphs';
+  onChangeView: (view: 'table' | 'graphs') => void;
 }
 
-const StatHeader = ({ groupName, title, description, onSaveChart, hasChart }: StatHeaderProps) => {
+const StatHeader = ({
+  groupName,
+  title,
+  description,
+  hasChart,
+  onSaveChart,
+  view,
+  onChangeView,
+}: StatHeaderProps) => {
   return (
-    <div className="flex items-center justify-between mb-4 pb-4">
+    <div className="grid grid-cols-3 items-center mb-4 pb-4">
       <div className="flex items-center gap-3">
         <Link
           to="/"
@@ -23,7 +34,26 @@ const StatHeader = ({ groupName, title, description, onSaveChart, hasChart }: St
         <div className="text-2xl font-medium">{groupName}</div>
         <span className="text-lg text-gray-700">{title}</span>
       </div>
-      <div className="flex items-center gap-3">
+
+      <div className="flex justify-center">
+        <ToggleGroup
+          type="single"
+          value={view}
+          onValueChange={(value) => {
+            if (value) onChangeView(value as 'table' | 'graphs');
+          }}
+          className="bg-gray-100 rounded-md"
+        >
+          <ToggleGroupItem value="table" className="px-4 py-2 text-sm">
+            Tabella
+          </ToggleGroupItem>
+          <ToggleGroupItem value="graphs" className="px-4 py-2 text-sm">
+            Grafici
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+
+      <div className="flex justify-end items-center gap-3">
         {hasChart && (
           <button
             onClick={onSaveChart}

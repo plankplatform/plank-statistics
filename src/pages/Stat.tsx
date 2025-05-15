@@ -55,18 +55,17 @@ interface CreateStatGraphPayload {
 
 const Stat = () => {
   const params = useParams();
-  const [hasChart, setHasChart] = useState(false);
   const groupName = params.groupName ?? '';
   const statId = Number(params.statId ?? '');
+
   const [data, setData] = useState<StatData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [viewChart, setViewChart] = useState(false);
+  const [view, setView] = useState<'table' | 'graphs'>('table');
+  const [hasChart, setHasChart] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lastChartModel, setLastChartModel] = useState<ChartModel | null>(null);
-  const [chartOptions, setChartOptions] = useState<AgChartOptions>({
-    data: [],
-    series: [],
-  });
+  const [savedGraphs, setSavedGraphs] = useState<any[]>([]);
+  const [graphsLoading, setGraphsLoading] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
 
   useEffect(() => {
@@ -81,7 +80,7 @@ const Stat = () => {
         const castedRows = castNumericValues(columns, rows);
 
         const stat: StatData = {
-          id: raw.id,
+          id: Number(raw.id),
           title: raw.title,
           description: raw.description,
           footer: raw.footer,
@@ -90,26 +89,29 @@ const Stat = () => {
         };
 
         setData(stat);
-
-        setChartOptions({
-          data: castedRows,
-          series: [
-            { type: 'bar', xKey: 'Operator', yKey: 'tot', yName: 'Tot' },
-            { type: 'bar', xKey: 'Operator', yKey: 'inbound', yName: 'Inbound' },
-            { type: 'bar', xKey: 'Operator', yKey: 'outbound', yName: 'Outbound' },
-          ],
-          legend: { enabled: true },
-          axes: [
-            { type: 'number', position: 'left', title: { text: 'Calls' } },
-            { type: 'category', position: 'bottom', title: { text: 'Operator' } },
-          ],
-          title: { text: raw.title, fontSize: 18, fontWeight: 'bold' },
-          height: 700,
-        });
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [statId]);
+
+  useEffect(() => {
+    if (view === 'graphs' && data && savedGraphs.length === 0) {
+      setGraphsLoading(true);
+
+      apiFetch<any[]>(`v1/stats/graphs?stat_id=${Number(data.id)}`)
+        .then((res) => {
+          const parsed = res.map((graph) => ({
+            ...graph,
+            config: typeof graph.config === 'string' ? JSON.parse(graph.config) : graph.config,
+          }));
+          setSavedGraphs(parsed);
+        })
+        .catch((err) => {
+          console.error('Errore nel caricamento dei grafici salvati:', err);
+        })
+        .finally(() => setGraphsLoading(false));
+    }
+  }, [view, data]);
 
   if (loading) return <Loader />;
   if (!data) return <p className="text-center text-gray-600 mt-12">Statistica non trovata</p>;
@@ -143,25 +145,40 @@ const Stat = () => {
             setLastChartModel(lastModel);
             setShowModal(true);
           }}
+          view={view}
+          onChangeView={setView}
         />
 
-        {viewChart ? (
-          groupName === 'CALL CENTER' && data.title === 'Operator Calls' ? (
-            <StatCharts options={chartOptions} />
-          ) : (
-            <div className="text-gray-500 text-sm text-center italic mt-24">
-              Nessuna visualizzazione disponibile per questa statistica
-            </div>
-          )
-        ) : (
+        {/* Griglia sempre montata, ma nascosta se non selezionata */}
+        <div className={view === 'table' ? '' : ''}>
           <StatTable
             gridRef={gridRef}
             rowData={data.rows}
             columnDefs={columnDefs}
             onChartCreated={() => setHasChart(true)}
           />
-        )}
+        </div>
+
+        {/* Sezione grafici */}
+        {view === 'graphs' &&
+          (graphsLoading ? (
+            <Loader />
+          ) : savedGraphs.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center italic mt-24">
+              Non ci sono grafici salvati per questa statistica.
+            </p>
+          ) : (
+            <div className="space-y-12 mt-10">
+              {savedGraphs.map((graph) => (
+                <div key={graph.id}>
+                  <h3 className="text-base font-semibold mb-2 text-gray-700">{graph.title}</h3>
+                  <StatCharts model={graph} gridRef={gridRef} />
+                </div>
+              ))}
+            </div>
+          ))}
       </div>
+
       {showModal && lastChartModel && (
         <SaveChartModal
           onClose={() => setShowModal(false)}
@@ -172,7 +189,6 @@ const Stat = () => {
               stat_id: data.id,
             };
 
-            console.log('Grafico da salvare:', payload);
             createStatGraph(payload)
               .then((res) => {
                 console.log('Grafico salvato con ID:', res.id);
