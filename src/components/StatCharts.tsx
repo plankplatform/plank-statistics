@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
-import type { ColDef, GridApi } from 'ag-grid-community';
+import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
 import { ChartModel } from 'ag-grid-community';
 
 interface StatChartsProps {
@@ -26,26 +26,16 @@ const StatCharts = ({ model, data, columns }: StatChartsProps) => {
     };
   });
 
-  useEffect(() => {
-    const gridApi: GridApi | undefined = gridRef.current?.api;
+  const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
     const container = containerRef.current;
-
-    if (!gridApi || !container) return;
+    if (!container) return;
 
     container.innerHTML = '';
-
-    const interval = setInterval(() => {
-      if (gridApi.getDisplayedRowCount() > 0) {
-        clearInterval(interval);
-        const chartRef = gridApi.restoreChart(model, container);
-        if (!chartRef) {
-          console.warn('Impossibile ricreare il grafico');
-        }
-      }
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [model, data, columns]);
+    const chartRef = event.api.restoreChart(model, container);
+    if (!chartRef) {
+      console.warn('Impossibile ricreare il grafico');
+    }
+  };
 
   return (
     <div className="border rounded p-4 bg-white">
@@ -61,6 +51,7 @@ const StatCharts = ({ model, data, columns }: StatChartsProps) => {
             suppressScrollOnNewData
             rowSelection="multiple"
             suppressCellFocus
+            onFirstDataRendered={handleFirstDataRendered}
           />
         </div>
       </div>
