@@ -10,6 +10,8 @@ import Loader from '../components/Loader';
 import StatHeader from '../components/StatHeader';
 import StatCharts from '../components/StatCharts';
 import StatTable from '../components/StatTable';
+import SaveChartModal from '../components/SaveChartModal';
+import type { ChartModel } from 'ag-grid-community';
 
 ModuleRegistry.registerModules([
   AllEnterpriseModule,
@@ -46,6 +48,8 @@ const Stat = () => {
   const [data, setData] = useState<StatData | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewChart, setViewChart] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [lastChartModel, setLastChartModel] = useState<ChartModel | null>(null);
   const [chartOptions, setChartOptions] = useState<AgChartOptions>({
     data: [],
     series: [],
@@ -123,18 +127,8 @@ const Stat = () => {
             }
 
             const lastModel = models[models.length - 1];
-            const title = prompt('Inserisci un nome per il grafico');
-            if (!title) return;
-
-            const payload = {
-              title,
-              chartId: lastModel.chartId,
-              config: lastModel,
-              statId: data.id,
-            };
-
-            console.log('Grafico da salvare:', payload);
-            // TODO: invio a backend via fetch/axios
+            setLastChartModel(lastModel);
+            setShowModal(true);
           }}
         />
 
@@ -155,6 +149,23 @@ const Stat = () => {
           />
         )}
       </div>
+      {showModal && lastChartModel && (
+        <SaveChartModal
+          onClose={() => setShowModal(false)}
+          onSave={(title) => {
+            const payload = {
+              title,
+              chartId: lastChartModel.chartId,
+              config: lastChartModel,
+              statId: data.id,
+            };
+
+            console.log('Grafico da salvare:', payload);
+            setShowModal(false);
+            // TODO: invio a backend
+          }}
+        />
+      )}
     </div>
   );
 };
