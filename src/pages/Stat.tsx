@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { ModuleRegistry } from 'ag-grid-community';
 import { AllEnterpriseModule, IntegratedChartsModule } from 'ag-grid-enterprise';
 import { AgChartsEnterpriseModule } from 'ag-charts-enterprise';
-import { AgChartOptions } from 'ag-charts-community';
 import { AgGridReact } from 'ag-grid-react';
 import { apiFetch } from '../lib/api';
 import Loader from '../components/Loader';
@@ -31,11 +30,24 @@ function castNumericValues(columns: string[], rows: Record<string, any>[]) {
   });
 }
 
+function normalizeChartOptions(model: ChartModel): ChartModel {
+  if (Array.isArray(model.chartOptions)) {
+    model.chartOptions = {};
+  }
+  return model;
+}
+
 async function createStatGraph(payload: CreateStatGraphPayload): Promise<{ id: number }> {
   return apiFetch('v1/stats/graphs', {
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+interface CreateStatGraphPayload {
+  title: string;
+  stat_id: number | string;
+  config: ChartModel;
 }
 
 interface StatData {
@@ -47,16 +59,10 @@ interface StatData {
   rows: Record<string, any>[];
 }
 
-interface CreateStatGraphPayload {
-  stat_id: number | string;
-  title: string;
-  config: object;
-}
-
 const Stat = () => {
   const params = useParams();
-  const groupName = params.groupName ?? '';
   const statId = Number(params.statId ?? '');
+  const groupName = params.groupName ?? '';
 
   const [data, setData] = useState<StatData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,47 +76,40 @@ const Stat = () => {
 
   useEffect(() => {
     if (isNaN(statId)) return;
-
     setLoading(true);
 
     apiFetch(`v1/stats/${statId}`)
       .then((raw: any) => {
-        const columns: string[] = JSON.parse(raw.columns_order || '[]');
-        const rows: Record<string, any>[] = JSON.parse(raw.json_results || '[]');
-        const castedRows = castNumericValues(columns, rows);
+        const columns = JSON.parse(raw.columns_order || '[]');
+        const rows = castNumericValues(columns, JSON.parse(raw.json_results || '[]'));
 
-        const stat: StatData = {
+        setData({
           id: Number(raw.id),
           title: raw.title,
           description: raw.description,
           footer: raw.footer,
           columns,
-          rows: castedRows,
-        };
-
-        setData(stat);
+          rows,
+        });
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [statId]);
 
   useEffect(() => {
-    if (view === 'graphs' && data && savedGraphs.length === 0) {
-      setGraphsLoading(true);
+    if (view !== 'graphs' || !data || savedGraphs.length > 0) return;
 
-      apiFetch<any[]>(`v1/stats/graphs?stat_id=${Number(data.id)}`)
-        .then((res) => {
-          const parsed = res.map((graph) => ({
-            ...graph,
-            config: typeof graph.config === 'string' ? JSON.parse(graph.config) : graph.config,
-          }));
-          setSavedGraphs(parsed);
-        })
-        .catch((err) => {
-          console.error('Errore nel caricamento dei grafici salvati:', err);
-        })
-        .finally(() => setGraphsLoading(false));
-    }
+    setGraphsLoading(true);
+    apiFetch<any[]>(`v1/stats/graphs?stat_id=${data.id}`)
+      .then((res) => {
+        const parsed = res.map((graph) => {
+          const config = typeof graph.config === 'string' ? JSON.parse(graph.config) : graph.config;
+          return { ...graph, config: normalizeChartOptions(config) };
+        });
+        setSavedGraphs(parsed);
+      })
+      .catch(console.error)
+      .finally(() => setGraphsLoading(false));
   }, [view, data]);
 
   if (loading) return <Loader />;
@@ -126,6 +125,37 @@ const Stat = () => {
     };
   });
 
+  const handleSaveChart = () => {
+    const api = gridRef.current?.api;
+    const models = api?.getChartModels() || [];
+    if (!models.length || !api) {
+      alert('Nessun grafico da salvare.');
+      return;
+    }
+
+    const lastModel = models[models.length - 1];
+    setLastChartModel(normalizeChartOptions({ ...lastModel }));
+    setShowModal(true);
+  };
+
+  const handleConfirmSave = (title: string) => {
+    if (!lastChartModel || !data) return;
+
+    const payload = {
+      title,
+      config: normalizeChartOptions(lastChartModel),
+      stat_id: data.id,
+    };
+
+    createStatGraph(payload)
+      .then((res) => console.log('Grafico salvato con ID:', res.id))
+      .catch((err) => {
+        console.error('Errore durante il salvataggio:', err);
+        alert('Errore durante il salvataggio del grafico');
+      })
+      .finally(() => setShowModal(false));
+  };
+
   return (
     <div className="px-6 py-4 w-5/6 mx-auto">
       <div className="mb-8 pt-8">
@@ -134,23 +164,12 @@ const Stat = () => {
           title={data.title}
           description={data.description}
           hasChart={hasChart}
-          onSaveChart={() => {
-            const models = gridRef.current?.api.getChartModels() || [];
-            if (!models.length) {
-              alert('Nessun grafico da salvare.');
-              return;
-            }
-
-            const lastModel = models[models.length - 1];
-            setLastChartModel(lastModel);
-            setShowModal(true);
-          }}
+          onSaveChart={handleSaveChart}
           view={view}
           onChangeView={setView}
         />
 
-        {/* Griglia sempre montata, ma nascosta se non selezionata */}
-        <div className={view === 'table' ? '' : ''}>
+        <div className={view === 'table' ? '' : 'hidden'}>
           <StatTable
             gridRef={gridRef}
             rowData={data.rows}
@@ -159,7 +178,6 @@ const Stat = () => {
           />
         </div>
 
-        {/* Sezione grafici */}
         {view === 'graphs' &&
           (graphsLoading ? (
             <Loader />
@@ -172,35 +190,16 @@ const Stat = () => {
               {savedGraphs.map((graph) => (
                 <div key={graph.id}>
                   <h3 className="text-base font-semibold mb-2 text-gray-700">{graph.title}</h3>
-                  <StatCharts model={graph} gridRef={gridRef} />
+                  <StatCharts model={graph.config} data={data.rows} columns={data.columns} />
                 </div>
               ))}
             </div>
           ))}
+
+        {showModal && lastChartModel && (
+          <SaveChartModal onClose={() => setShowModal(false)} onSave={handleConfirmSave} />
+        )}
       </div>
-
-      {showModal && lastChartModel && (
-        <SaveChartModal
-          onClose={() => setShowModal(false)}
-          onSave={(title) => {
-            const payload: CreateStatGraphPayload = {
-              title,
-              config: lastChartModel,
-              stat_id: data.id,
-            };
-
-            createStatGraph(payload)
-              .then((res) => {
-                console.log('Grafico salvato con ID:', res.id);
-              })
-              .catch((err) => {
-                console.error('Errore durante il salvataggio:', err);
-                alert('Errore durante il salvataggio del grafico');
-              })
-              .finally(() => setShowModal(false));
-          }}
-        />
-      )}
     </div>
   );
 };

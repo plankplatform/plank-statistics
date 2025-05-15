@@ -1,42 +1,70 @@
 import { useEffect, useRef } from 'react';
+import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
+import type { ColDef, GridApi } from 'ag-grid-community';
+import { ChartModel } from 'ag-grid-community';
 
 interface StatChartsProps {
-  model: any;
-  gridRef: React.RefObject<AgGridReact<any> | null>;
+  model: ChartModel;
+  data: Record<string, any>[];
+  columns: string[];
 }
 
-const StatCharts = ({ model, gridRef }: StatChartsProps) => {
+const StatCharts = ({ model, data, columns }: StatChartsProps) => {
+  const gridRef = useRef<AgGridReact>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const colDefs: ColDef[] = columns.map((col) => {
+    const firstValue = data.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
+    const isNumeric = typeof firstValue === 'number';
+
+    return {
+      field: col,
+      filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
+      type: isNumeric ? 'numericColumn' : undefined,
+      chartDataType: isNumeric ? 'series' : 'category',
+    };
+  });
+
   useEffect(() => {
-    const api = gridRef.current?.api;
+    const gridApi: GridApi | undefined = gridRef.current?.api;
     const container = containerRef.current;
 
-    console.log('[StatCharts] Model:', model);
-    console.log('[StatCharts] Grid API available:', !!api);
-    console.log('[StatCharts] Container available:', !!container);
+    if (!gridApi || !container) return;
 
-    if (api && container) {
-      console.log('[StatCharts] Restoring chart...');
-      console.log('Restoring chart with model:', model);
-      console.log(
-        'Available columns:',
-        api.getColumns()?.map((c) => c.getColId())
-      );
-      console.log('Data row count:', api.getDisplayedRowCount());
-      container.innerHTML = ''; // Pulisce eventuale contenuto precedente
-      const chartRef = api.restoreChart(model, container);
-      console.log('[StatCharts] Chart restored:', chartRef);
-    } else {
-      console.warn('[StatCharts] Missing API or container, cannot restore chart');
-    }
-  }, [model, gridRef]);
+    container.innerHTML = '';
+
+    const interval = setInterval(() => {
+      if (gridApi.getDisplayedRowCount() > 0) {
+        clearInterval(interval);
+        const chartRef = gridApi.restoreChart(model, container);
+        if (!chartRef) {
+          console.warn('Impossibile ricreare il grafico');
+        }
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [model, data, columns]);
 
   return (
-    <div className="w-full mt-4 mb-8">
-      <div className="flex items-center justify-between mb-2"></div>
-      <div ref={containerRef} className="border rounded p-4 bg-white" />
+    <div className="border rounded p-4 bg-white">
+      <div style={{ display: 'none' }}>
+        <div className="ag-theme-alpine" style={{ height: 1, width: 1 }}>
+          <AgGrid
+            ref={gridRef}
+            rowData={data}
+            columnDefs={colDefs}
+            suppressPaginationPanel
+            suppressMovableColumns
+            suppressMenuHide
+            suppressScrollOnNewData
+            rowSelection="multiple"
+            suppressCellFocus
+          />
+        </div>
+      </div>
+      <div ref={containerRef} className="w-full h-[400px]" />
     </div>
   );
 };
