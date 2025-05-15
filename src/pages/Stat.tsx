@@ -40,6 +40,7 @@ interface StatData {
 
 const Stat = () => {
   const params = useParams();
+  const [hasChart, setHasChart] = useState(false);
   const groupName = params.groupName ?? '';
   const statId = Number(params.statId ?? '');
   const [data, setData] = useState<StatData | null>(null);
@@ -113,8 +114,28 @@ const Stat = () => {
           groupName={groupName}
           title={data.title}
           description={data.description}
-          viewChart={viewChart}
-          onToggle={setViewChart}
+          hasChart={hasChart}
+          onSaveChart={() => {
+            const models = gridRef.current?.api.getChartModels() || [];
+            if (!models.length) {
+              alert('Nessun grafico da salvare.');
+              return;
+            }
+
+            const lastModel = models[models.length - 1];
+            const title = prompt('Inserisci un nome per il grafico');
+            if (!title) return;
+
+            const payload = {
+              title,
+              chartId: lastModel.chartId,
+              config: lastModel,
+              statId: data.id,
+            };
+
+            console.log('Grafico da salvare:', payload);
+            // TODO: invio a backend via fetch/axios
+          }}
         />
 
         {viewChart ? (
@@ -126,7 +147,12 @@ const Stat = () => {
             </div>
           )
         ) : (
-          <StatTable gridRef={gridRef} rowData={data.rows} columnDefs={columnDefs} />
+          <StatTable
+            gridRef={gridRef}
+            rowData={data.rows}
+            columnDefs={columnDefs}
+            onChartCreated={() => setHasChart(true)}
+          />
         )}
       </div>
     </div>

@@ -1,17 +1,15 @@
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 
 interface StatHeaderProps {
   groupName: string;
   title: string;
   description?: string;
-  viewChart: boolean;
-  onToggle: (checked: boolean) => void;
+  onSaveChart: () => void;
+  hasChart: boolean;
 }
 
-const StatHeader = ({ groupName, title, description, viewChart, onToggle }: StatHeaderProps) => {
+const StatHeader = ({ groupName, title, description, onSaveChart, hasChart }: StatHeaderProps) => {
   return (
     <div className="flex items-center justify-between mb-4 pb-4">
       <div className="flex items-center gap-3">
@@ -26,15 +24,14 @@ const StatHeader = ({ groupName, title, description, viewChart, onToggle }: Stat
         <span className="text-lg text-gray-700">{title}</span>
       </div>
       <div className="flex items-center gap-3">
-        <Label htmlFor="toggle-chart" className="text-sm text-gray-600">
-          View charts
-        </Label>
-        <Switch
-          id="toggle-chart"
-          checked={viewChart}
-          onCheckedChange={onToggle}
-          className="data-[state=checked]:bg-plank-pink"
-        />
+        {hasChart && (
+          <button
+            onClick={onSaveChart}
+            className="px-4 py-2 rounded-md bg-plank-pink text-white text-sm hover:bg-pink-700 transition"
+          >
+            Salva grafico
+          </button>
+        )}
       </div>
     </div>
   );
