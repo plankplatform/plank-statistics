@@ -31,6 +31,13 @@ function castNumericValues(columns: string[], rows: Record<string, any>[]) {
   });
 }
 
+async function createStatGraph(payload: CreateStatGraphPayload): Promise<{ id: number }> {
+  return apiFetch('v1/stats/graphs', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 interface StatData {
   id: number | string;
   title: string;
@@ -38,6 +45,12 @@ interface StatData {
   footer?: string;
   columns: string[];
   rows: Record<string, any>[];
+}
+
+interface CreateStatGraphPayload {
+  stat_id: number | string;
+  title: string;
+  config: object;
 }
 
 const Stat = () => {
@@ -153,16 +166,22 @@ const Stat = () => {
         <SaveChartModal
           onClose={() => setShowModal(false)}
           onSave={(title) => {
-            const payload = {
+            const payload: CreateStatGraphPayload = {
               title,
-              chartId: lastChartModel.chartId,
               config: lastChartModel,
-              statId: data.id,
+              stat_id: data.id,
             };
 
             console.log('Grafico da salvare:', payload);
-            setShowModal(false);
-            // TODO: invio a backend
+            createStatGraph(payload)
+              .then((res) => {
+                console.log('Grafico salvato con ID:', res.id);
+              })
+              .catch((err) => {
+                console.error('Errore durante il salvataggio:', err);
+                alert('Errore durante il salvataggio del grafico');
+              })
+              .finally(() => setShowModal(false));
           }}
         />
       )}
