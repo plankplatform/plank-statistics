@@ -70,6 +70,7 @@ const Stat = () => {
   const [hasChart, setHasChart] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lastChartModel, setLastChartModel] = useState<ChartModel | null>(null);
+  const [lastChartFilter, setLastChartFilter] = useState<any>(null);
   const [savedGraphs, setSavedGraphs] = useState<any[]>([]);
   const [graphsLoading, setGraphsLoading] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
@@ -128,13 +129,15 @@ const Stat = () => {
   const handleSaveChart = () => {
     const api = gridRef.current?.api;
     const models = api?.getChartModels() || [];
+    const filters = api?.getFilterModel() || [];
     if (!models.length || !api) {
       alert('Nessun grafico da salvare.');
       return;
     }
 
     const lastModel = models[models.length - 1];
-    setLastChartModel(normalizeChartOptions({ ...lastModel }));
+    setLastChartModel({ ...lastModel });
+    setLastChartFilter(filters);
     setShowModal(true);
   };
 
@@ -144,6 +147,7 @@ const Stat = () => {
     const payload = {
       title,
       config: normalizeChartOptions(lastChartModel),
+      filters: lastChartFilter,
       stat_id: data.id,
     };
 
@@ -190,7 +194,12 @@ const Stat = () => {
               {savedGraphs.map((graph) => (
                 <div key={graph.id}>
                   <h3 className="text-base font-semibold mb-2 text-gray-700">{graph.title}</h3>
-                  <StatCharts model={graph.config} data={data.rows} columns={data.columns} />
+                  <StatCharts
+                    filters={graph.filters}
+                    model={graph.config}
+                    data={data.rows}
+                    columns={data.columns}
+                  />
                 </div>
               ))}
             </div>

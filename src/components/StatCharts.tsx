@@ -8,9 +8,10 @@ interface StatChartsProps {
   model: ChartModel;
   data: Record<string, any>[];
   columns: string[];
+  filters?: any;
 }
 
-const StatCharts = ({ model, data, columns }: StatChartsProps) => {
+const StatCharts = ({ model, data, columns, filters }: StatChartsProps) => {
   const gridRef = useRef<AgGridReact>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -31,9 +32,21 @@ const StatCharts = ({ model, data, columns }: StatChartsProps) => {
     if (!container) return;
 
     container.innerHTML = '';
-    const chartRef = event.api.restoreChart(model, container);
-    if (!chartRef) {
-      console.warn('Impossibile ricreare il grafico');
+
+    if (filters && Object.keys(filters).length > 0) {
+      event.api.setFilterModel(JSON.parse(filters));
+
+      setTimeout(() => {
+        const chartRef = event.api.restoreChart(model, container);
+        if (!chartRef) {
+          console.warn('Impossibile ricreare il grafico');
+        }
+      }, 100);
+    } else {
+      const chartRef = event.api.restoreChart(model, container);
+      if (!chartRef) {
+        console.warn('Impossibile ricreare il grafico');
+      }
     }
   };
 
