@@ -86,7 +86,7 @@ const Stat = () => {
             { type: 'category', position: 'bottom', title: { text: 'Operator' } },
           ],
           title: { text: raw.title, fontSize: 18, fontWeight: 'bold' },
-          height: 600,
+          height: 700,
         });
       })
       .catch(console.error)
@@ -116,12 +116,18 @@ const Stat = () => {
           viewChart={viewChart}
           onToggle={setViewChart}
         />
-        {viewChart && groupName === 'CALL CENTER' && data.title === 'Operator Calls' ? (
-          <StatCharts options={chartOptions} />
+
+        {viewChart ? (
+          groupName === 'CALL CENTER' && data.title === 'Operator Calls' ? (
+            <StatCharts options={chartOptions} />
+          ) : (
+            <div className="text-gray-500 text-sm text-center italic mt-24">
+              Nessuna visualizzazione disponibile per questa statistica
+            </div>
+          )
         ) : (
           <StatTable gridRef={gridRef} rowData={data.rows} columnDefs={columnDefs} />
         )}
-        {data.footer && <p className="mt-2 text-sm text-muted-foreground">{data.footer}</p>}
       </div>
     </div>
   );

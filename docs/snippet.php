@@ -10,6 +10,11 @@ echo '
       padding: 0;
       height: 100%;
       width: 100%;
+      overflow: hidden;
+    }
+
+    .r-topbar-page {
+      background-color: white;
     }
 
     #iframe-host {
@@ -17,6 +22,11 @@ echo '
       height: 100vh;
       border: none;
       display: block;
+      scrollbar-width: none;
+    }
+
+    #iframe-host::-webkit-scrollbar {
+      display: none;
     }
 
     #footer:not(#react-wrapper > #footer) {

@@ -3,7 +3,7 @@
 
 @import 'tailwindcss';
 
-@import "tw-animate-css";
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -13,8 +13,28 @@
   --color-plank-gray: #f9f9f9;
 }
 
+html,
+body,
+#root {
+  height: auto;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  -ms-overflow-style: none; /* IE e Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+.ag-center-cols-viewport {
+  min-height: 625px !important;
+}
+
 #react-container {
-  font-family: 'Roboto', sans-serif !important;
+  font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
 }
 
 @theme inline {

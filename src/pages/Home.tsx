@@ -57,38 +57,48 @@ const Home = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="px-8 py-10 w-5/6 mx-auto mt-12">
-      <Accordion type="multiple" className="w-full space-y-6">
-        {groups.map((group) => (
-          <AccordionItem key={group.group} value={group.group}>
-            <AccordionTrigger className="text-2xl font-bold text-plank-blue hover:text-plank-pink transition-colors">
-              {group.group}
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="mt-4 flex flex-col gap-3">
-                {group.stats.map((stat) => (
-                  <Link
-                    key={stat.id}
-                    to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(
-                      stat.id
-                    )}`}
-                    className="text-left px-6 py-4 rounded-xl bg-plank-blue/5 hover:bg-plank-pink/10 transition-colors block"
-                  >
-                    <div className="text-plank-blue font-semibold text-lg no-underline hover:no-underline">
-                      {stat.title}
-                    </div>
-                    {/* {stat.description && (
-                      <div className="text-gray-700 text-sm mt-1 no-underline hover:no-underline">
-                        {stat.description}
-                      </div>
-                    )} */}
-                  </Link>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+    <div className="px-8 py-10 max-w-4xl font-medium mx-auto mt-12">
+      <div className="flex items-center justify-center gap-4 mb-8">
+        <img
+          src="https://www.plank.global/public/favicon.ico"
+          alt="Plank Logo"
+          className="w-8 h-8"
+        />
+        <h1 className="text-4xl text-gray-800">Plank Statistics</h1>
+      </div>
+      {groups.length === 0 ? (
+        <div className="text-gray-500 text-sm text-center italic mt-24">
+          Non sono presenti statistiche.
+        </div>
+      ) : (
+        <Accordion type="multiple" className="w-full space-y-6">
+          {groups.map((group) => (
+            <AccordionItem key={group.group} value={group.group}>
+              <AccordionTrigger className="text-xl text-black hover:text-gray-800 transition-colors">
+                {group.group}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="mt-4 flex flex-col gap-2">
+                  {group.stats.map((stat) => (
+                    <Link
+                      key={stat.id}
+                      to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(
+                        stat.id
+                      )}`}
+                      className="text-left px-6 py-4 bg-gray-100 hover:bg-gray-200 hover:shadow-sm transition-all block rounded-lg"
+                    >
+                      <div className="text-black text-lg">{stat.title}</div>
+                      {/* <div className="text-gray-500 text-sm mt-1">
+                      {stat.description || 'Ultimo aggiornamento: 02/05/2025'}
+                    </div> */}
+                    </Link>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
     </div>
   );
 };

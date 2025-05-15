@@ -22,7 +22,7 @@ const StatHeader = ({ groupName, title, description, viewChart, onToggle }: Stat
         >
           <ArrowLeft className="w-6 h-6" />
         </Link>
-        <div className="text-2xl font-bold text-plank-blue">{groupName}</div>
+        <div className="text-2xl font-medium">{groupName}</div>
         <span className="text-lg text-gray-700">{title}</span>
       </div>
       <div className="flex items-center gap-3">
@@ -33,7 +33,7 @@ const StatHeader = ({ groupName, title, description, viewChart, onToggle }: Stat
           id="toggle-chart"
           checked={viewChart}
           onCheckedChange={onToggle}
-          className="data-[state=checked]:bg-plank-blue"
+          className="data-[state=checked]:bg-plank-pink"
         />
       </div>
     </div>
