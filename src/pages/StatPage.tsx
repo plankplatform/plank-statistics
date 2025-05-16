@@ -71,6 +71,7 @@ const StatPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [lastChartModel, setLastChartModel] = useState<ChartModel | null>(null);
   const [lastChartFilter, setLastChartFilter] = useState<any>(null);
+  const [lastChartSorting, setLastChartSorting] = useState<any>(null);
   const [savedGraphs, setSavedGraphs] = useState<any[]>([]);
   const [savedGraphsCache, setSavedGraphsCache] = useState<Record<number | string, any[]>>({});
   const [graphsLoading, setGraphsLoading] = useState(false);
@@ -135,6 +136,8 @@ const StatPage = () => {
     const api = gridRef.current?.api;
     const models = api?.getChartModels() || [];
     const filters = api?.getFilterModel() || [];
+    const sorting = api?.getColumnState() || [];
+    console.log('Sorting:', sorting);
     if (!models.length || !api) {
       alert('Nessun grafico da salvare.');
       return;
@@ -143,6 +146,7 @@ const StatPage = () => {
     const lastModel = models[models.length - 1];
     setLastChartModel({ ...lastModel });
     setLastChartFilter(filters);
+    setLastChartSorting(sorting);
     setShowModal(true);
   };
 
@@ -153,6 +157,7 @@ const StatPage = () => {
       title,
       config: normalizeChartOptions(lastChartModel),
       filters: lastChartFilter,
+      sorting: lastChartSorting,
       stat_id: data.id,
     };
 
@@ -208,6 +213,7 @@ const StatPage = () => {
               <div key={graph.id}>
                 <StatChart
                   filters={graph.filters}
+                  sorting={graph.sorting}
                   model={graph.config}
                   data={data.rows}
                   columns={data.columns}

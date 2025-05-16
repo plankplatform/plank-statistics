@@ -11,6 +11,7 @@ interface StatChartsProps {
   data: Record<string, any>[];
   columns: string[];
   filters?: any;
+  sorting?: any;
   chartId: number;
   title: string;
   onDelete: () => void;
@@ -21,6 +22,7 @@ const StatChart = ({
   data,
   columns,
   filters,
+  sorting,
   chartId,
   title,
   onDelete,
@@ -46,6 +48,13 @@ const StatChart = ({
     if (!container) return;
 
     container.innerHTML = '';
+
+    if (sorting && Object.keys(sorting).length > 0) {
+      event.api.applyColumnState({
+        state: JSON.parse(sorting),
+        applyOrder: true,
+      });
+    }
 
     if (filters && Object.keys(filters).length > 0) {
       event.api.setFilterModel(JSON.parse(filters));
