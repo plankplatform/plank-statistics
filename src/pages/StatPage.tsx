@@ -72,6 +72,7 @@ const StatPage = () => {
   const [lastChartModel, setLastChartModel] = useState<ChartModel | null>(null);
   const [lastChartFilter, setLastChartFilter] = useState<any>(null);
   const [savedGraphs, setSavedGraphs] = useState<any[]>([]);
+  const [savedGraphsCache, setSavedGraphsCache] = useState<Record<number | string, any[]>>({});
   const [graphsLoading, setGraphsLoading] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
 
@@ -100,6 +101,9 @@ const StatPage = () => {
   useEffect(() => {
     if (view !== 'graphs' || !data) return;
 
+    const cached = savedGraphsCache[data.id];
+    if (cached) return;
+
     setGraphsLoading(true);
     apiFetch<any[]>(`v1/stats/graphs?stat_id=${data.id}`)
       .then((res) => {
@@ -107,7 +111,8 @@ const StatPage = () => {
           const config = typeof graph.config === 'string' ? JSON.parse(graph.config) : graph.config;
           return { ...graph, config: normalizeChartOptions(config) };
         });
-        setSavedGraphs(parsed);
+
+        setSavedGraphsCache((prev) => ({ ...prev, [data.id]: parsed }));
       })
       .catch(console.error)
       .finally(() => setGraphsLoading(false));
@@ -158,7 +163,15 @@ const StatPage = () => {
         alert('Errore durante il salvataggio del grafico');
       })
       .finally(() => setShowModal(false));
+
+    setSavedGraphsCache((prev) => {
+      const copy = { ...prev };
+      delete copy[data.id];
+      return copy;
+    });
   };
+
+  const graphs = data ? savedGraphsCache[data.id] ?? [] : [];
 
   return (
     <div className="px-6 py-4 w-5/6 mx-auto">
@@ -186,13 +199,13 @@ const StatPage = () => {
         {view === 'graphs' &&
           (graphsLoading ? (
             <Loader />
-          ) : savedGraphs.length === 0 ? (
+          ) : graphs.length === 0 ? (
             <p className="text-gray-500 text-sm text-center italic mt-24">
               Non ci sono grafici salvati per questa statistica.
             </p>
           ) : (
             <div className="space-y-12 mt-10">
-              {savedGraphs.map((graph) => (
+              {graphs.map((graph) => (
                 <div key={graph.id}>
                   <h3 className="text-base font-semibold mb-2 text-gray-700">{graph.title}</h3>
                   <StatChart
