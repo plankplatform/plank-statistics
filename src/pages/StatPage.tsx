@@ -206,12 +206,20 @@ const StatPage = () => {
           <div className="space-y-12 mt-2">
             {graphs.map((graph) => (
               <div key={graph.id}>
-                <h3 className="text-base font-semibold mb-2 text-gray-700">{graph.title}</h3>
                 <StatChart
                   filters={graph.filters}
                   model={graph.config}
                   data={data.rows}
                   columns={data.columns}
+                  chartId={graph.id}
+                  title={graph.title}
+                  onDelete={() => {
+                    setSavedGraphsCache((prev) => {
+                      const updated = { ...prev };
+                      updated[data.id] = updated[data.id].filter((g) => g.id !== graph.id);
+                      return updated;
+                    });
+                  }}
                 />
               </div>
             ))}

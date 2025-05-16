@@ -1,19 +1,33 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
 import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
 import { ChartModel } from 'ag-grid-community';
+import ChartCardHeader from './ChartCardHeader';
+import { apiFetch } from '@/lib/api';
 
 interface StatChartsProps {
   model: ChartModel;
   data: Record<string, any>[];
   columns: string[];
   filters?: any;
+  chartId: number;
+  title: string;
+  onDelete: () => void;
 }
 
-const StatChart = ({ model, data, columns, filters }: StatChartsProps) => {
+const StatChart = ({
+  model,
+  data,
+  columns,
+  filters,
+  chartId,
+  title,
+  onDelete,
+}: StatChartsProps) => {
   const gridRef = useRef<AgGridReact>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const colDefs: ColDef[] = columns.map((col) => {
     const firstValue = data.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
@@ -52,8 +66,23 @@ const StatChart = ({ model, data, columns, filters }: StatChartsProps) => {
 
   const getChartToolbarItems = () => [];
 
+  const handleConfirmDelete = async () => {
+    await apiFetch(`v1/stats/graphs/${chartId}`, {
+      method: 'DELETE',
+    });
+    onDelete();
+    setOpenDialog(false);
+  };
+
   return (
     <div className="border rounded bg-white">
+      <ChartCardHeader
+        title={title}
+        showDialog={openDialog}
+        setShowDialog={setOpenDialog}
+        onConfirmDelete={handleConfirmDelete}
+      />
+
       <div style={{ display: 'none' }}>
         <div className="ag-theme-alpine" style={{ height: 1, width: 1 }}>
           <AgGrid
@@ -71,6 +100,7 @@ const StatChart = ({ model, data, columns, filters }: StatChartsProps) => {
           />
         </div>
       </div>
+
       <div ref={containerRef} className="w-full h-[350px]" />
     </div>
   );
