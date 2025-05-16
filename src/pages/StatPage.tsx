@@ -7,7 +7,7 @@ import { AgGridReact } from 'ag-grid-react';
 import { apiFetch } from '../lib/api';
 import Loader from '../components/Loader';
 import StatHeader from '../components/StatHeader';
-import StatCharts from '../components/StatCharts';
+import StatChart from '../components/StatChart';
 import StatTable from '../components/StatTable';
 import SaveChartModal from '../components/SaveChartModal';
 import type { ChartModel } from 'ag-grid-community';
@@ -194,7 +194,7 @@ const StatPage = () => {
               {savedGraphs.map((graph) => (
                 <div key={graph.id}>
                   <h3 className="text-base font-semibold mb-2 text-gray-700">{graph.title}</h3>
-                  <StatCharts
+                  <StatChart
                     filters={graph.filters}
                     model={graph.config}
                     data={data.rows}

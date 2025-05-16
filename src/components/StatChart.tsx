@@ -11,7 +11,7 @@ interface StatChartsProps {
   filters?: any;
 }
 
-const StatCharts = ({ model, data, columns, filters }: StatChartsProps) => {
+const StatChart = ({ model, data, columns, filters }: StatChartsProps) => {
   const gridRef = useRef<AgGridReact>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -73,4 +73,4 @@ const StatCharts = ({ model, data, columns, filters }: StatChartsProps) => {
   );
 };
 
-export default StatCharts;
+export default StatChart;
