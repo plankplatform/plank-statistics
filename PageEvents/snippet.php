@@ -3,6 +3,8 @@
 $token = $_SESSION['api_token'] ?? '';
 $cacheBuster = time();
 
+require_once dirname(__DIR__, 3) . '/utility/config/config.php';
+
 echo '
   <style>
     html, body {
@@ -38,9 +40,20 @@ echo '
     const token = ' . json_encode($token) . ';
     sessionStorage.setItem("apitoken", token);
   </script>
-
-  <iframe
-    id="iframe-host"
-    src="/plank/plank-statistics/dist/index.html?v=' . $cacheBuster . '"
-  ></iframe>
 ';
+
+if(APP_ENV === 'prod') {
+  echo '
+    <iframe
+      id="iframe-host"
+      src="/plank/PageEvents/plank_statistics_dashboard/index.html?v=' . $cacheBuster . '"
+    ></iframe>
+  ';
+} else {
+  echo '
+    <iframe
+      id="iframe-host"
+      src="/plank/plank-statistics/dist/index.html?v=' . $cacheBuster . '"
+    ></iframe>
+  ';
+}
