@@ -98,7 +98,7 @@ const StatPage = () => {
   }, [statId]);
 
   useEffect(() => {
-    if (view !== 'graphs' || !data || savedGraphs.length > 0) return;
+    if (view !== 'graphs' || !data) return;
 
     setGraphsLoading(true);
     apiFetch<any[]>(`v1/stats/graphs?stat_id=${data.id}`)
