@@ -1,4 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface SaveChartModalProps {
   onClose: () => void;
@@ -7,57 +10,55 @@ interface SaveChartModalProps {
 
 const SaveChartModal = ({ onClose, onSave }: SaveChartModalProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState('');
 
   useEffect(() => {
     inputRef.current?.focus();
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
+      if (e.key === 'Enter') handleSubmit();
     };
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  }, []);
 
   const handleSubmit = () => {
-    const value = inputRef.current?.value?.trim();
-    if (!value) {
+    const trimmed = title.trim();
+    if (!trimmed) {
       alert('Inserisci un nome valido per il grafico.');
       return;
     }
 
-    onSave(value);
+    onSave(trimmed);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-      <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm relative">
-        <h2 className="text-lg mb-4">Salva grafico</h2>
-        <input
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Salva grafico</DialogTitle>
+        </DialogHeader>
+        <Input
           ref={inputRef}
-          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="Nome del grafico"
-          className="text-sm w-full border border-gray-300 rounded px-3 py-2 mb-4"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSubmit();
-          }}
         />
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="text-sm px-4 py-2 rounded bg-gray-200 text-gray-800 hover:bg-gray-300"
-          >
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="outline" onClick={onClose}>
             Annulla
-          </button>
-          <button
+          </Button>
+          <Button
+            className="bg-plank-pink text-white hover:bg-plank-pink/90"
             onClick={handleSubmit}
-            className="text-sm px-4 py-2 rounded bg-plank-pink text-white hover:bg-pink-700"
           >
             Salva
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
