@@ -64,7 +64,7 @@ const Home = () => {
           alt="Plank Logo"
           className="w-8 h-8"
         />
-        <h1 className="text-4xl text-gray-800">Plank Statistics</h1>
+        <h1 className="text-4xl text-gray-800">Plank statistics!</h1>
       </div>
       {groups.length === 0 ? (
         <div className="text-gray-500 text-sm text-center italic mt-24">
