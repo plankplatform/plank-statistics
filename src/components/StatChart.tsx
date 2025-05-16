@@ -50,6 +50,8 @@ const StatChart = ({ model, data, columns, filters }: StatChartsProps) => {
     }
   };
 
+  const getChartToolbarItems = () => [];
+
   return (
     <div className="border rounded p-4 bg-white">
       <div style={{ display: 'none' }}>
@@ -65,6 +67,7 @@ const StatChart = ({ model, data, columns, filters }: StatChartsProps) => {
             rowSelection="multiple"
             suppressCellFocus
             onFirstDataRendered={handleFirstDataRendered}
+            getChartToolbarItems={getChartToolbarItems}
           />
         </div>
       </div>

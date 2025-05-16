@@ -8,9 +8,16 @@ interface StatTableProps {
   rowData: Record<string, any>[];
   columnDefs: any[];
   onChartCreated?: () => void;
+  setHasChart: (hasChart: boolean) => void;
 }
 
-const StatTable = ({ gridRef, rowData, columnDefs, onChartCreated }: StatTableProps) => {
+const StatTable = ({
+  gridRef,
+  rowData,
+  columnDefs,
+  onChartCreated,
+  setHasChart,
+}: StatTableProps) => {
   const apiRef = useRef<GridApi | null>(null);
 
   return (
@@ -32,6 +39,9 @@ const StatTable = ({ gridRef, rowData, columnDefs, onChartCreated }: StatTablePr
           }}
           onChartCreated={() => {
             onChartCreated?.();
+          }}
+          onChartDestroyed={() => {
+            setHasChart(false);
           }}
         />
       </div>

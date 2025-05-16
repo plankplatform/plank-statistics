@@ -167,7 +167,7 @@ const StatPage = () => {
           groupName={groupName}
           title={data.title}
           description={data.description}
-          hasChart={hasChart}
+          hasChart={view === 'table' && hasChart}
           onSaveChart={handleSaveChart}
           view={view}
           onChangeView={setView}
@@ -179,6 +179,7 @@ const StatPage = () => {
             rowData={data.rows}
             columnDefs={columnDefs}
             onChartCreated={() => setHasChart(true)}
+            setHasChart={setHasChart}
           />
         </div>
 
