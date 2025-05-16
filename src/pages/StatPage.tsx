@@ -59,7 +59,7 @@ interface StatData {
   rows: Record<string, any>[];
 }
 
-const Stat = () => {
+const StatPage = () => {
   const params = useParams();
   const statId = Number(params.statId ?? '');
   const groupName = params.groupName ?? '';
@@ -213,4 +213,4 @@ const Stat = () => {
   );
 };
 
-export default Stat;
+export default StatPage;

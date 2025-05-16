@@ -7,6 +7,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
+    server: {
+      open: true,
+    },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
