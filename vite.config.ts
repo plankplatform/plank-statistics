@@ -5,6 +5,7 @@ import path from 'path';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
+  const isDev = mode === 'development';
 
   return {
     server: {
@@ -23,9 +24,9 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       rollupOptions: {
         output: {
-          entryFileNames: 'assets/[name].js',
-          chunkFileNames: 'assets/[name].js',
-          assetFileNames: 'assets/[name].[ext]',
+          entryFileNames: isDev ? 'assets/[name].[hash].js' : 'assets/[name].js',
+          chunkFileNames: isDev ? 'assets/[name].[hash].js' : 'assets/[name].js',
+          assetFileNames: isDev ? 'assets/[name].[hash].[ext]' : 'assets/[name].[ext]',
         },
       },
     },
