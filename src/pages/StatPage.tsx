@@ -175,54 +175,52 @@ const StatPage = () => {
 
   return (
     <div className="px-6 py-4 w-5/6 mx-auto">
-      <div className="mb-8 pt-8">
-        <StatHeader
-          groupName={groupName}
-          title={data.title}
-          description={data.description}
-          hasChart={view === 'table' && hasChart}
-          onSaveChart={handleSaveChart}
-          view={view}
-          onChangeView={setView}
+      <StatHeader
+        groupName={groupName}
+        title={data.title}
+        description={data.description}
+        hasChart={view === 'table' && hasChart}
+        onSaveChart={handleSaveChart}
+        view={view}
+        onChangeView={setView}
+      />
+
+      <div className={view === 'table' ? '' : 'hidden'}>
+        <StatTable
+          gridRef={gridRef}
+          rowData={data.rows}
+          columnDefs={columnDefs}
+          onChartCreated={() => setHasChart(true)}
+          setHasChart={setHasChart}
         />
-
-        <div className={view === 'table' ? '' : 'hidden'}>
-          <StatTable
-            gridRef={gridRef}
-            rowData={data.rows}
-            columnDefs={columnDefs}
-            onChartCreated={() => setHasChart(true)}
-            setHasChart={setHasChart}
-          />
-        </div>
-
-        {view === 'graphs' &&
-          (graphsLoading ? (
-            <Loader />
-          ) : graphs.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center italic mt-24">
-              Non ci sono grafici salvati per questa statistica.
-            </p>
-          ) : (
-            <div className="space-y-12 mt-10">
-              {graphs.map((graph) => (
-                <div key={graph.id}>
-                  <h3 className="text-base font-semibold mb-2 text-gray-700">{graph.title}</h3>
-                  <StatChart
-                    filters={graph.filters}
-                    model={graph.config}
-                    data={data.rows}
-                    columns={data.columns}
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-
-        {showModal && lastChartModel && (
-          <SaveChartModal onClose={() => setShowModal(false)} onSave={handleConfirmSave} />
-        )}
       </div>
+
+      {view === 'graphs' &&
+        (graphsLoading ? (
+          <Loader />
+        ) : graphs.length === 0 ? (
+          <p className="text-gray-500 text-sm text-center italic mt-24">
+            Non ci sono grafici salvati per questa statistica.
+          </p>
+        ) : (
+          <div className="space-y-12 mt-2">
+            {graphs.map((graph) => (
+              <div key={graph.id}>
+                <h3 className="text-base font-semibold mb-2 text-gray-700">{graph.title}</h3>
+                <StatChart
+                  filters={graph.filters}
+                  model={graph.config}
+                  data={data.rows}
+                  columns={data.columns}
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+
+      {showModal && lastChartModel && (
+        <SaveChartModal onClose={() => setShowModal(false)} onSave={handleConfirmSave} />
+      )}
     </div>
   );
 };

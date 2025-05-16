@@ -74,7 +74,7 @@ const Home = () => {
         <Accordion type="multiple" className="w-full space-y-6">
           {groups.map((group) => (
             <AccordionItem key={group.group} value={group.group}>
-              <AccordionTrigger className="text-xl text-black hover:text-gray-800 transition-colors">
+              <AccordionTrigger className="text-lg text-black hover:text-gray-800 transition-colors">
                 {group.group}
               </AccordionTrigger>
               <AccordionContent>
@@ -87,7 +87,7 @@ const Home = () => {
                       )}`}
                       className="text-left px-6 py-4 bg-gray-100 hover:bg-gray-200 hover:shadow-sm transition-all block rounded-lg"
                     >
-                      <div className="text-black text-lg">{stat.title}</div>
+                      <div className="text-black text-base">{stat.title}</div>
                       {/* <div className="text-gray-500 text-sm mt-1">
                       {stat.description || 'Ultimo aggiornamento: 02/05/2025'}
                     </div> */}

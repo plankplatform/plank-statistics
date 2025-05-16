@@ -53,7 +53,7 @@ const StatChart = ({ model, data, columns, filters }: StatChartsProps) => {
   const getChartToolbarItems = () => [];
 
   return (
-    <div className="border rounded p-4 bg-white">
+    <div className="border rounded bg-white">
       <div style={{ display: 'none' }}>
         <div className="ag-theme-alpine" style={{ height: 1, width: 1 }}>
           <AgGrid
@@ -71,7 +71,7 @@ const StatChart = ({ model, data, columns, filters }: StatChartsProps) => {
           />
         </div>
       </div>
-      <div ref={containerRef} className="w-full h-[400px]" />
+      <div ref={containerRef} className="w-full h-[350px]" />
     </div>
   );
 };

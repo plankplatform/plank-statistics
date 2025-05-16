@@ -22,7 +22,7 @@ const StatHeader = ({
   onChangeView,
 }: StatHeaderProps) => {
   return (
-    <div className="grid grid-cols-3 items-center mb-4 pb-4">
+    <div className="grid grid-cols-3 items-center mb-2 pb-2">
       <div className="flex items-center gap-3">
         <Link
           to="/"
@@ -31,8 +31,8 @@ const StatHeader = ({
         >
           <ArrowLeft className="w-6 h-6" />
         </Link>
-        <div className="text-2xl font-medium">{groupName}</div>
-        <span className="text-lg text-gray-700">{title}</span>
+        <div className="text-xl font-medium">{groupName}</div>
+        <span className="text-base text-gray-700">{title}</span>
       </div>
 
       <div className="flex justify-center">
