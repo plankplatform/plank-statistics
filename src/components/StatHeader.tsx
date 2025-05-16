@@ -44,10 +44,16 @@ const StatHeader = ({
           }}
           className="bg-gray-100 rounded-md"
         >
-          <ToggleGroupItem value="table" className="px-4 py-2 text-sm">
+          <ToggleGroupItem
+            value="table"
+            className="px-4 py-2 text-sm data-[state=on]:bg-plank-pink data-[state=on]:text-white"
+          >
             Tabella
           </ToggleGroupItem>
-          <ToggleGroupItem value="graphs" className="px-4 py-2 text-sm">
+          <ToggleGroupItem
+            value="graphs"
+            className="px-4 py-2 text-sm data-[state=on]:bg-plank-pink data-[state=on]:text-white"
+          >
             Grafici
           </ToggleGroupItem>
         </ToggleGroup>
