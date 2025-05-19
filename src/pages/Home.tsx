@@ -93,19 +93,20 @@ const Home = () => {
       .finally(() => setLoadingStarred(false));
   }, []);
 
-  if (loading) return <Loader />;
+  const loadingPage = loading || loadingStarred;
+
+  if (loadingPage) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen px-8 py-10 max-w-[1400px] mx-auto grid grid-cols-12 gap-10">
       <div className="col-span-3 pl-2 pt-4">
         <div className="w-full max-w-[220px]">
-          {/* <div className="flex items-center gap-3 mb-6 justify-center">
-            <img
-              src="https://www.plank.global/public/favicon.ico"
-              alt="Plank Logo"
-              className="w-6 h-6"
-            />
-          </div> */}
           {groups.length === 0 ? (
             <div className="text-gray-500 text-sm text-center italic mt-24">
               Non sono presenti statistiche.
@@ -140,9 +141,7 @@ const Home = () => {
       </div>
 
       <div className="col-span-9 pr-4">
-        {loadingStarred ? (
-          <Loader />
-        ) : starredGraphs.length === 0 ? (
+        {starredGraphs.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[300px]">
             <p className="text-sm italic text-gray-500">Nessun grafico preferito</p>
           </div>
