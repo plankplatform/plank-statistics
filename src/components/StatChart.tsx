@@ -1,7 +1,12 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
-import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
+import type {
+  ColDef,
+  FirstDataRenderedEvent,
+  GetChartMenuItemsParams,
+  MenuItemDef,
+} from 'ag-grid-community';
 import { ChartModel } from 'ag-grid-community';
 import ChartCardHeader from './ChartCardHeader';
 import { apiFetch } from '@/lib/api';
@@ -73,7 +78,11 @@ const StatChart = ({
     }
   };
 
-  const getChartToolbarItems = () => [];
+  const chartMenuItems = useCallback((params: any) => {
+    return params.defaultItems.filter((item: string) => {
+      return item !== 'chartLink' && item !== 'chartUnlink';
+    });
+  }, []);
 
   const handleConfirmDelete = async () => {
     await apiFetch(`v1/stats/graphs/${chartId}`, {
@@ -105,7 +114,8 @@ const StatChart = ({
             rowSelection="multiple"
             suppressCellFocus
             onFirstDataRendered={handleFirstDataRendered}
-            getChartToolbarItems={getChartToolbarItems}
+            popupParent={document.body}
+            chartMenuItems={chartMenuItems}
           />
         </div>
       </div>
