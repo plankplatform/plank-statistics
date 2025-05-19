@@ -92,7 +92,7 @@ const ChartCardHeader = ({
           {isStarred ? (
             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
           ) : (
-            <StarOff className="w-4 h-4 text-gray-400" />
+            <Star className="w-4 h-4 text-black" />
           )}
         </Button>
 
