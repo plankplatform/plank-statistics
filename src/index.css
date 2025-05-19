@@ -37,6 +37,20 @@ body::-webkit-scrollbar {
   font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
 }
 
+
+@layer utilities {
+  .animate-fade-in {
+    @apply transition-opacity duration-500 opacity-0;
+    animation: fadeIn 0.5s forwards;
+  }
+
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

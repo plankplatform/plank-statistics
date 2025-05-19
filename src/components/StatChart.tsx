@@ -36,6 +36,7 @@ const StatChart = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [currentTitle, setCurrentTitle] = useState(title);
+  const [justSaved, setJustSaved] = useState(false);
 
   const handleSave = async () => {
     const api = gridRef.current?.api;
@@ -59,6 +60,9 @@ const StatChart = ({
           sorting: updatedSorting,
         }),
       });
+
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2500);
     } catch (err) {
       console.error('Errore durante il salvataggio:', err);
       alert('Errore durante il salvataggio');
@@ -130,6 +134,7 @@ const StatChart = ({
         showDialog={openDialog}
         setShowDialog={setOpenDialog}
         onConfirmDelete={handleConfirmDelete}
+        justSaved={justSaved}
       />
 
       <div style={{ display: 'none' }}>

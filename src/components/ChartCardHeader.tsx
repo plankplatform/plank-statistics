@@ -10,6 +10,7 @@ interface ChartCardHeaderProps {
   onSave: () => void;
   showDialog: boolean;
   setShowDialog: (v: boolean) => void;
+  justSaved: boolean;
 }
 
 const ChartCardHeader = ({
@@ -19,6 +20,7 @@ const ChartCardHeader = ({
   onSave,
   showDialog,
   setShowDialog,
+  justSaved,
 }: ChartCardHeaderProps) => {
   const [editing, setEditing] = useState(false);
   const [localTitle, setLocalTitle] = useState(title);
@@ -68,6 +70,10 @@ const ChartCardHeader = ({
       </div>
 
       <div className="flex gap-1 items-center ml-2">
+        {justSaved && (
+          <span className="text-xs text-gray-500 font-medium animate-fade-in">Salvato</span>
+        )}
+
         <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave}>
           <Save className="w-4 h-4" />
         </Button>
