@@ -229,6 +229,7 @@ const StatPage = () => {
                   columns={data.columns}
                   chartId={graph.id}
                   title={graph.title}
+                  isStarred={graph.is_starred}
                   onDelete={() => {
                     setSavedGraphsCache((prev) => {
                       const updated = { ...prev };

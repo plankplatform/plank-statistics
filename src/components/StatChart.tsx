@@ -16,6 +16,7 @@ interface StatChartsProps {
   title: string;
   onDelete: () => void;
   updateCachedGraph: (graphId: number, updatedData: Partial<any>) => void;
+  isStarred: boolean;
 }
 
 const StatChart = ({
@@ -26,6 +27,7 @@ const StatChart = ({
   sorting,
   chartId,
   title,
+  isStarred: isStarredProp,
   onDelete,
   updateCachedGraph,
 }: StatChartsProps) => {
@@ -39,6 +41,11 @@ const StatChart = ({
   const [currentModel, setCurrentModel] = useState(model);
   const [currentFilters, setCurrentFilters] = useState(filters);
   const [currentSorting, setCurrentSorting] = useState(sorting);
+  const [isStarred, setIsStarred] = useState(isStarredProp);
+
+  const toggleStar = () => {
+    setIsStarred((prev) => !prev);
+  };
 
   useEffect(() => {
     setCurrentTitle(title);
@@ -73,6 +80,7 @@ const StatChart = ({
           config: updatedModel,
           filters: updatedFilters,
           sorting: updatedSorting,
+          is_starred: isStarred,
         }),
       });
 
@@ -84,6 +92,7 @@ const StatChart = ({
         config: updatedModel,
         filters: updatedFilters,
         sorting: updatedSorting,
+        is_starred: isStarred,
       });
 
       setCurrentModel(updatedModel);
@@ -161,6 +170,8 @@ const StatChart = ({
         setShowDialog={setOpenDialog}
         onConfirmDelete={handleConfirmDelete}
         justSaved={justSaved}
+        isStarred={isStarred}
+        onToggleStar={toggleStar}
       />
 
       <div style={{ display: 'none' }}>
