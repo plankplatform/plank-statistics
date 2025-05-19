@@ -1,12 +1,7 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
-import type {
-  ColDef,
-  FirstDataRenderedEvent,
-  GetChartMenuItemsParams,
-  MenuItemDef,
-} from 'ag-grid-community';
+import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
 import { ChartModel } from 'ag-grid-community';
 import ChartCardHeader from './ChartCardHeader';
 import { apiFetch } from '@/lib/api';
@@ -20,6 +15,7 @@ interface StatChartsProps {
   chartId: number;
   title: string;
   onDelete: () => void;
+  updateCachedGraph: (graphId: number, updatedData: Partial<any>) => void;
 }
 
 const StatChart = ({
@@ -31,22 +27,41 @@ const StatChart = ({
   chartId,
   title,
   onDelete,
+  updateCachedGraph,
 }: StatChartsProps) => {
   const gridRef = useRef<AgGridReact>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
   const [openDialog, setOpenDialog] = useState(false);
-  const [currentTitle, setCurrentTitle] = useState(title);
   const [justSaved, setJustSaved] = useState(false);
+
+  const [currentTitle, setCurrentTitle] = useState(title);
+  const [currentModel, setCurrentModel] = useState(model);
+  const [currentFilters, setCurrentFilters] = useState(filters);
+  const [currentSorting, setCurrentSorting] = useState(sorting);
+
+  useEffect(() => {
+    setCurrentTitle(title);
+  }, [title]);
+
+  useEffect(() => {
+    setCurrentModel(model);
+  }, [model]);
+
+  useEffect(() => {
+    setCurrentFilters(filters);
+  }, [filters]);
+
+  useEffect(() => {
+    setCurrentSorting(sorting);
+  }, [sorting]);
 
   const handleSave = async () => {
     const api = gridRef.current?.api;
     const models = api?.getChartModels() || [];
-    if (!models.length) return;
+    if (!models.length || !api) return;
 
     const updatedModel = models[models.length - 1];
-
-    if (!api) return;
-
     const updatedFilters = api.getFilterModel();
     const updatedSorting = api.getColumnState();
 
@@ -54,7 +69,7 @@ const StatChart = ({
       await apiFetch(`v1/stats/graphs/${chartId}`, {
         method: 'PUT',
         body: JSON.stringify({
-          title: currentTitle,
+          title: currentTitle.trim(),
           config: updatedModel,
           filters: updatedFilters,
           sorting: updatedSorting,
@@ -63,6 +78,17 @@ const StatChart = ({
 
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2500);
+
+      updateCachedGraph(chartId, {
+        title: currentTitle.trim(),
+        config: updatedModel,
+        filters: updatedFilters,
+        sorting: updatedSorting,
+      });
+
+      setCurrentModel(updatedModel);
+      setCurrentFilters(updatedFilters);
+      setCurrentSorting(updatedSorting);
     } catch (err) {
       console.error('Errore durante il salvataggio:', err);
       alert('Errore durante il salvataggio');
@@ -87,31 +113,31 @@ const StatChart = ({
 
     container.innerHTML = '';
 
-    if (sorting && Object.keys(sorting).length > 0) {
+    if (currentSorting && Object.keys(currentSorting).length > 0) {
       event.api.applyColumnState({
-        state: JSON.parse(sorting),
+        state: currentSorting,
         applyOrder: true,
       });
     }
 
-    if (filters && Object.keys(filters).length > 0) {
-      event.api.setFilterModel(JSON.parse(filters));
+    if (currentFilters && Object.keys(currentFilters).length > 0) {
+      event.api.setFilterModel(currentFilters);
 
       setTimeout(() => {
-        const chartRef = event.api.restoreChart(model, container);
+        const chartRef = event.api.restoreChart(currentModel, container);
         if (!chartRef) {
           console.warn('Impossibile ricreare il grafico');
         }
       }, 100);
     } else {
-      const chartRef = event.api.restoreChart(model, container);
+      const chartRef = event.api.restoreChart(currentModel, container);
       if (!chartRef) {
         console.warn('Impossibile ricreare il grafico');
       }
     }
   };
 
-  const chartMenuItems = useCallback((params: any) => {
+  const chartMenuItems = useCallback((params: any): any => {
     return params.defaultItems.filter((item: string) => {
       return item !== 'chartLink' && item !== 'chartUnlink';
     });

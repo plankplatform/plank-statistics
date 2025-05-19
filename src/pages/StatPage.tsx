@@ -110,7 +110,17 @@ const StatPage = () => {
       .then((res) => {
         const parsed = res.map((graph) => {
           const config = typeof graph.config === 'string' ? JSON.parse(graph.config) : graph.config;
-          return { ...graph, config: normalizeChartOptions(config) };
+          const filters =
+            typeof graph.filters === 'string' ? JSON.parse(graph.filters) : graph.filters;
+          const sorting =
+            typeof graph.sorting === 'string' ? JSON.parse(graph.sorting) : graph.sorting;
+
+          return {
+            ...graph,
+            config: normalizeChartOptions(config),
+            filters,
+            sorting,
+          };
         });
 
         setSavedGraphsCache((prev) => ({ ...prev, [data.id]: parsed }));
@@ -223,6 +233,16 @@ const StatPage = () => {
                     setSavedGraphsCache((prev) => {
                       const updated = { ...prev };
                       updated[data.id] = updated[data.id].filter((g) => g.id !== graph.id);
+                      return updated;
+                    });
+                  }}
+                  updateCachedGraph={(graphId, updatedData) => {
+                    setSavedGraphsCache((prev) => {
+                      const updated = { ...prev };
+                      const current = updated[data.id] || [];
+                      updated[data.id] = current.map((g) =>
+                        g.id === graphId ? { ...g, ...updatedData } : g
+                      );
                       return updated;
                     });
                   }}
