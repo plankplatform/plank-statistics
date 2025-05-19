@@ -34,16 +34,21 @@ const ChartCardHeader = ({
 
   return (
     <div className="flex items-center justify-between px-4 py-2 border-b">
-      <div onDoubleClick={() => setEditing(true)} className="flex-1">
+      <div onDoubleClick={() => setEditing(true)} className="flex-1 cursor-text">
         {editing ? (
           <input
             ref={inputRef}
-            className="text-base font-semibold text-gray-800 bg-white border-b border-gray-300 focus:outline-none focus:border-plank-pink"
+            className="text-base font-semibold text-gray-800 bg-white border-b border-gray-300 focus:outline-none focus:border-gray-200"
             value={localTitle}
             onChange={(e) => setLocalTitle(e.target.value)}
             onBlur={() => {
+              const trimmed = localTitle.trim();
+              if (trimmed === '') {
+                setLocalTitle(title); // ripristina il titolo originale
+              } else if (trimmed !== title) {
+                onTitleChange(trimmed);
+              }
               setEditing(false);
-              if (localTitle !== title) onTitleChange(localTitle);
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -52,7 +57,13 @@ const ChartCardHeader = ({
             }}
           />
         ) : (
-          <h3 className="text-base font-semibold text-gray-800 truncate">{localTitle}</h3>
+          <h3 className="text-base font-semibold text-gray-800 truncate">
+            {localTitle.trim() === '' ? (
+              <span className="italic text-gray-400">Senza titolo</span>
+            ) : (
+              localTitle
+            )}
+          </h3>
         )}
       </div>
 
