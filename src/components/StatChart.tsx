@@ -35,6 +35,35 @@ const StatChart = ({
   const gridRef = useRef<AgGridReact>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [currentTitle, setCurrentTitle] = useState(title);
+
+  const handleSave = async () => {
+    const api = gridRef.current?.api;
+    const models = api?.getChartModels() || [];
+    if (!models.length) return;
+
+    const updatedModel = models[models.length - 1];
+
+    if (!api) return;
+
+    const updatedFilters = api.getFilterModel();
+    const updatedSorting = api.getColumnState();
+
+    try {
+      await apiFetch(`v1/stats/graphs/${chartId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          title: currentTitle,
+          config: updatedModel,
+          filters: updatedFilters,
+          sorting: updatedSorting,
+        }),
+      });
+    } catch (err) {
+      console.error('Errore durante il salvataggio:', err);
+      alert('Errore durante il salvataggio');
+    }
+  };
 
   const colDefs: ColDef[] = columns.map((col) => {
     const firstValue = data.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
@@ -95,7 +124,9 @@ const StatChart = ({
   return (
     <div className="border rounded bg-white">
       <ChartCardHeader
-        title={title}
+        title={currentTitle}
+        onTitleChange={(newTitle) => setCurrentTitle(newTitle)}
+        onSave={handleSave}
         showDialog={openDialog}
         setShowDialog={setOpenDialog}
         onConfirmDelete={handleConfirmDelete}
