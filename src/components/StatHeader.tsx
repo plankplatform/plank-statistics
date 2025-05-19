@@ -32,7 +32,7 @@ const StatHeader = ({
         >
           <ArrowLeft className="w-6 h-6" />
         </Link>
-        <div className="text-xl font-medium">{groupName}</div>
+        <div className="text-lg font-medium">{groupName}</div>
         <span className="text-base text-gray-700">{title}</span>
       </div>
 

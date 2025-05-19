@@ -29,6 +29,13 @@ body::-webkit-scrollbar {
   display: none; /* Chrome, Safari */
 }
 
+* {
+  scrollbar-width: none; /* Firefox */
+}
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
 .ag-center-cols-viewport {
   min-height: 625px !important;
 }
@@ -36,7 +43,6 @@ body::-webkit-scrollbar {
 #react-container {
   font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
 }
-
 
 @layer utilities {
   .animate-fade-in {

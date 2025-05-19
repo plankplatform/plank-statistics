@@ -99,13 +99,13 @@ const Home = () => {
     <div className="h-screen px-8 py-10 max-w-[1400px] mx-auto grid grid-cols-12 gap-10">
       <div className="col-span-3 pl-2 pt-4">
         <div className="w-full max-w-[220px]">
-          <div className="flex items-center gap-3 mb-6 justify-center">
+          {/* <div className="flex items-center gap-3 mb-6 justify-center">
             <img
               src="https://www.plank.global/public/favicon.ico"
               alt="Plank Logo"
               className="w-6 h-6"
             />
-          </div>
+          </div> */}
           {groups.length === 0 ? (
             <div className="text-gray-500 text-sm text-center italic mt-24">
               Non sono presenti statistiche.
@@ -139,7 +139,7 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="col-span-9 overflow-y-auto pr-4">
+      <div className="col-span-9 pr-4">
         {loadingStarred ? (
           <Loader />
         ) : starredGraphs.length === 0 ? (
