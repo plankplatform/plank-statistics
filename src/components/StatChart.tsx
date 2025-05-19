@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
 import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
@@ -16,6 +16,7 @@ interface StatChartsProps {
   title: string;
   onDelete: () => void;
   updateCachedGraph: (graphId: number, updatedData: Partial<any>) => void;
+  isStarred: boolean;
 }
 
 const StatChart = ({
@@ -26,6 +27,7 @@ const StatChart = ({
   sorting,
   chartId,
   title,
+  isStarred: isStarredProp,
   onDelete,
   updateCachedGraph,
 }: StatChartsProps) => {
@@ -39,22 +41,28 @@ const StatChart = ({
   const [currentModel, setCurrentModel] = useState(model);
   const [currentFilters, setCurrentFilters] = useState(filters);
   const [currentSorting, setCurrentSorting] = useState(sorting);
+  const [isStarred, setIsStarred] = useState(isStarredProp);
 
-  useEffect(() => {
-    setCurrentTitle(title);
-  }, [title]);
+  const toggleStar = () => {
+    setIsStarred((prev) => !prev);
+  };
 
-  useEffect(() => {
-    setCurrentModel(model);
-  }, [model]);
+  useEffect(() => setCurrentTitle(title), [title]);
+  useEffect(() => setCurrentModel(model), [model]);
+  useEffect(() => setCurrentFilters(filters), [filters]);
+  useEffect(() => setCurrentSorting(sorting), [sorting]);
 
-  useEffect(() => {
-    setCurrentFilters(filters);
-  }, [filters]);
+  const castNumericValues = (rows: Record<string, any>[], cols: string[]) =>
+    rows.map((row) => {
+      const newRow: Record<string, any> = {};
+      for (const key of cols) {
+        const val = row[key];
+        newRow[key] = !isNaN(val) && val !== '' && val !== null ? Number(val) : val;
+      }
+      return newRow;
+    });
 
-  useEffect(() => {
-    setCurrentSorting(sorting);
-  }, [sorting]);
+  const castedData = useMemo(() => castNumericValues(data, columns), [data, columns]);
 
   const handleSave = async () => {
     const api = gridRef.current?.api;
@@ -73,6 +81,7 @@ const StatChart = ({
           config: updatedModel,
           filters: updatedFilters,
           sorting: updatedSorting,
+          is_starred: isStarred,
         }),
       });
 
@@ -84,6 +93,7 @@ const StatChart = ({
         config: updatedModel,
         filters: updatedFilters,
         sorting: updatedSorting,
+        is_starred: isStarred,
       });
 
       setCurrentModel(updatedModel);
@@ -96,7 +106,7 @@ const StatChart = ({
   };
 
   const colDefs: ColDef[] = columns.map((col) => {
-    const firstValue = data.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
+    const firstValue = castedData.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
     const isNumeric = typeof firstValue === 'number';
 
     return {
@@ -113,7 +123,7 @@ const StatChart = ({
 
     container.innerHTML = '';
 
-    if (currentSorting && Object.keys(currentSorting).length > 0) {
+    if (Array.isArray(currentSorting) && currentSorting.length > 0) {
       event.api.applyColumnState({
         state: currentSorting,
         applyOrder: true,
@@ -161,13 +171,15 @@ const StatChart = ({
         setShowDialog={setOpenDialog}
         onConfirmDelete={handleConfirmDelete}
         justSaved={justSaved}
+        isStarred={isStarred}
+        onToggleStar={toggleStar}
       />
 
       <div style={{ display: 'none' }}>
         <div className="ag-theme-alpine" style={{ height: 1, width: 1 }}>
           <AgGrid
             ref={gridRef}
-            rowData={data}
+            rowData={castedData}
             columnDefs={colDefs}
             suppressPaginationPanel
             suppressMovableColumns

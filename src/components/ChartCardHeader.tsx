@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
-import { Pencil, Save } from 'lucide-react';
+import { Pencil, Save, Star, StarOff } from 'lucide-react';
 
 interface ChartCardHeaderProps {
   title: string;
@@ -11,6 +11,8 @@ interface ChartCardHeaderProps {
   showDialog: boolean;
   setShowDialog: (v: boolean) => void;
   justSaved: boolean;
+  isStarred: boolean;
+  onToggleStar: () => void;
 }
 
 const ChartCardHeader = ({
@@ -21,6 +23,8 @@ const ChartCardHeader = ({
   showDialog,
   setShowDialog,
   justSaved,
+  isStarred,
+  onToggleStar,
 }: ChartCardHeaderProps) => {
   const [editing, setEditing] = useState(false);
   const [localTitle, setLocalTitle] = useState(title);
@@ -76,6 +80,20 @@ const ChartCardHeader = ({
 
         <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave}>
           <Save className="w-4 h-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="w-8 h-8"
+          onClick={onToggleStar}
+          aria-label="Segna come preferito"
+        >
+          {isStarred ? (
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+          ) : (
+            <Star className="w-4 h-4 text-black" />
+          )}
         </Button>
 
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
