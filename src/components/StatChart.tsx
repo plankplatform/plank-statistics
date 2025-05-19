@@ -5,6 +5,7 @@ import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
 import { ChartModel } from 'ag-grid-community';
 import ChartCardHeader from './ChartCardHeader';
 import { apiFetch } from '@/lib/api';
+import { invalidateStarredGraphs } from '@/lib/starredGraphsStore';
 
 interface StatChartsProps {
   model: ChartModel;
@@ -95,6 +96,8 @@ const StatChart = ({
         sorting: updatedSorting,
         is_starred: isStarred,
       });
+
+      invalidateStarredGraphs();
 
       setCurrentModel(updatedModel);
       setCurrentFilters(updatedFilters);

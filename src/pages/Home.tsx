@@ -9,6 +9,11 @@ import {
 } from '../components/ui/accordion';
 import { Link } from 'react-router-dom';
 import StatChart from '../components/StatChart';
+import {
+  getStarredGraphs,
+  setStarredGraphs as cacheStarredGraphs,
+  invalidateStarredGraphs,
+} from '../lib/starredGraphsStore';
 
 type RawGroupedStats = {
   [group: string]: {
@@ -55,18 +60,23 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
+    const { graphs: cached, statsById: cachedStats } = getStarredGraphs();
+
+    if (cached && Object.keys(cachedStats).length > 0) {
+      setStarredGraphs(cached);
+      setStatsById(cachedStats);
+      setLoadingStarred(false);
+      return;
+    }
+
     apiFetch<any[]>('v1/stats/graphs/starred')
       .then((graphs) => {
         const parsed = graphs.map((graph) => {
           const config = typeof graph.config === 'string' ? JSON.parse(graph.config) : graph.config;
           const filters =
             typeof graph.filters === 'string' ? JSON.parse(graph.filters) : graph.filters;
-          let sorting =
+          const sorting =
             typeof graph.sorting === 'string' ? JSON.parse(graph.sorting) : graph.sorting;
-          //if (!Array.isArray(sorting)) sorting = [];
-          if (sorting.length === 0) {
-            console.warn(`Graph ${graph.id} ha sorting vuoto o non valido`);
-          }
 
           return { ...graph, config, filters, sorting };
         });
@@ -75,8 +85,8 @@ const Home = () => {
 
         const uniqueStatIds = [...new Set(parsed.map((g) => g.stat_id))];
 
-        Promise.all(uniqueStatIds.map((id) => apiFetch(`v1/stats/${id}`)))
-          .then((responses) => {
+        return Promise.all(uniqueStatIds.map((id) => apiFetch(`v1/stats/${id}`))).then(
+          (responses) => {
             const mapping: Record<number, { columns: string[]; rows: any[] }> = {};
 
             responses.forEach((raw) => {
@@ -86,8 +96,9 @@ const Home = () => {
             });
 
             setStatsById(mapping);
-          })
-          .catch(console.error);
+            cacheStarredGraphs(parsed, mapping);
+          }
+        );
       })
       .catch(console.error)
       .finally(() => setLoadingStarred(false));
@@ -175,9 +186,11 @@ const Home = () => {
                   data={stat.rows}
                   columns={stat.columns}
                   onDelete={() => {
+                    invalidateStarredGraphs();
                     setStarredGraphs((prev) => prev.filter((g) => g.id !== graph.id));
                   }}
                   updateCachedGraph={(graphId, updatedData) => {
+                    invalidateStarredGraphs();
                     setStarredGraphs((prev) =>
                       prev.map((g) => (g.id === graphId ? { ...g, ...updatedData } : g))
                     );
