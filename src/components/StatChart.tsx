@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, useMemo } from 'react';
 import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
 import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
@@ -47,21 +47,22 @@ const StatChart = ({
     setIsStarred((prev) => !prev);
   };
 
-  useEffect(() => {
-    setCurrentTitle(title);
-  }, [title]);
+  useEffect(() => setCurrentTitle(title), [title]);
+  useEffect(() => setCurrentModel(model), [model]);
+  useEffect(() => setCurrentFilters(filters), [filters]);
+  useEffect(() => setCurrentSorting(sorting), [sorting]);
 
-  useEffect(() => {
-    setCurrentModel(model);
-  }, [model]);
+  const castNumericValues = (rows: Record<string, any>[], cols: string[]) =>
+    rows.map((row) => {
+      const newRow: Record<string, any> = {};
+      for (const key of cols) {
+        const val = row[key];
+        newRow[key] = !isNaN(val) && val !== '' && val !== null ? Number(val) : val;
+      }
+      return newRow;
+    });
 
-  useEffect(() => {
-    setCurrentFilters(filters);
-  }, [filters]);
-
-  useEffect(() => {
-    setCurrentSorting(sorting);
-  }, [sorting]);
+  const castedData = useMemo(() => castNumericValues(data, columns), [data, columns]);
 
   const handleSave = async () => {
     const api = gridRef.current?.api;
@@ -105,7 +106,7 @@ const StatChart = ({
   };
 
   const colDefs: ColDef[] = columns.map((col) => {
-    const firstValue = data.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
+    const firstValue = castedData.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
     const isNumeric = typeof firstValue === 'number';
 
     return {
@@ -117,12 +118,15 @@ const StatChart = ({
   });
 
   const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
+    console.log('>> Data length:', castedData.length);
+    console.log('>> Sample data:', castedData.slice(0, 5));
+
     const container = containerRef.current;
     if (!container) return;
 
     container.innerHTML = '';
 
-    if (currentSorting && Object.keys(currentSorting).length > 0) {
+    if (Array.isArray(currentSorting) && currentSorting.length > 0) {
       event.api.applyColumnState({
         state: currentSorting,
         applyOrder: true,
@@ -178,7 +182,7 @@ const StatChart = ({
         <div className="ag-theme-alpine" style={{ height: 1, width: 1 }}>
           <AgGrid
             ref={gridRef}
-            rowData={data}
+            rowData={castedData}
             columnDefs={colDefs}
             suppressPaginationPanel
             suppressMovableColumns
