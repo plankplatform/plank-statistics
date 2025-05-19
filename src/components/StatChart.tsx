@@ -44,8 +44,26 @@ const StatChart = ({
   const [currentSorting, setCurrentSorting] = useState(sorting);
   const [isStarred, setIsStarred] = useState(isStarredProp);
 
-  const toggleStar = () => {
-    setIsStarred((prev) => !prev);
+  const toggleStar = async () => {
+    const newValue = !isStarred;
+    setIsStarred(newValue);
+
+    try {
+      await apiFetch(`v1/stats/graphs/${chartId}/starred`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_starred: newValue }),
+      });
+
+      invalidateStarredGraphs();
+
+      updateCachedGraph(chartId, {
+        is_starred: newValue,
+      });
+    } catch (err) {
+      console.error('Errore durante il toggle del preferito:', err);
+      alert('Errore durante il salvataggio del preferito');
+      setIsStarred(!newValue);
+    }
   };
 
   useEffect(() => setCurrentTitle(title), [title]);

@@ -151,7 +151,7 @@ const Home = () => {
         </div>
       </div>
 
-      <div className="col-span-9 pr-4">
+      <div className="col-span-9 pr-4 mb-24">
         {starredGraphs.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[300px]">
             <p className="text-sm italic text-gray-500">Nessun grafico preferito</p>
