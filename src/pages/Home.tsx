@@ -96,62 +96,61 @@ const Home = () => {
   if (loading) return <Loader />;
 
   return (
-    <div className="px-8 py-10 max-w-[1400px] mx-auto mt-12 grid grid-cols-12 gap-10">
-      <div className="col-span-4">
-        <div className="flex items-center gap-3 mb-6">
-          <img
-            src="https://www.plank.global/public/favicon.ico"
-            alt="Plank Logo"
-            className="w-8 h-8"
-          />
-          <h1 className="text-2xl text-gray-800 font-semibold">Plank Statistics</h1>
-        </div>
-        {groups.length === 0 ? (
-          <div className="text-gray-500 text-sm text-center italic mt-24">
-            Non sono presenti statistiche.
+    <div className="h-screen px-8 py-10 max-w-[1400px] mx-auto grid grid-cols-12 gap-10">
+      <div className="col-span-3 pl-2 pt-4">
+        <div className="w-full max-w-[220px]">
+          <div className="flex items-center gap-3 mb-6 justify-center">
+            <img
+              src="https://www.plank.global/public/favicon.ico"
+              alt="Plank Logo"
+              className="w-6 h-6"
+            />
           </div>
-        ) : (
-          <Accordion type="multiple" className="w-full space-y-6">
-            {groups.map((group) => (
-              <AccordionItem key={group.group} value={group.group}>
-                <AccordionTrigger className="text-lg text-black hover:text-gray-800 transition-colors">
-                  {group.group}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div className="mt-4 flex flex-col gap-2">
-                    {group.stats.map((stat) => (
-                      <Link
-                        key={stat.id}
-                        to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(
-                          stat.id
-                        )}`}
-                        className="text-left px-6 py-4 bg-gray-100 hover:bg-gray-200 hover:shadow-sm transition-all block rounded-lg"
-                      >
-                        <div className="text-black text-base">{stat.title}</div>
-                      </Link>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        )}
+          {groups.length === 0 ? (
+            <div className="text-gray-500 text-sm text-center italic mt-24">
+              Non sono presenti statistiche.
+            </div>
+          ) : (
+            <Accordion type="multiple" className="w-full space-y-4">
+              {groups.map((group) => (
+                <AccordionItem key={group.group} value={group.group}>
+                  <AccordionTrigger className="text-sm text-black hover:text-gray-800 transition-colors">
+                    {group.group}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {group.stats.map((stat) => (
+                        <Link
+                          key={stat.id}
+                          to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(
+                            stat.id
+                          )}`}
+                          className="text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all block rounded"
+                        >
+                          <div className="text-black text-sm">{stat.title}</div>
+                        </Link>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </div>
       </div>
 
-      <div className="col-span-8">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Grafici preferiti</h2>
+      <div className="col-span-9 overflow-y-auto pr-4">
         {loadingStarred ? (
           <Loader />
         ) : starredGraphs.length === 0 ? (
-          <p className="text-sm italic text-gray-500">Nessun grafico preferito</p>
+          <div className="flex items-center justify-center h-full min-h-[300px]">
+            <p className="text-sm italic text-gray-500">Nessun grafico preferito</p>
+          </div>
         ) : (
           <div className="space-y-6">
             {starredGraphs.map((graph) => {
               const stat = statsById[graph.stat_id];
               if (!stat) return null;
-
-              console.log('Stat:', stat);
-              console.log('Graph:', graph);
 
               return (
                 <StatChart

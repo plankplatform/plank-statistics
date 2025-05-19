@@ -118,9 +118,6 @@ const StatChart = ({
   });
 
   const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
-    console.log('>> Data length:', castedData.length);
-    console.log('>> Sample data:', castedData.slice(0, 5));
-
     const container = containerRef.current;
     if (!container) return;
 
