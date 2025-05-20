@@ -57,6 +57,8 @@ interface StatData {
   footer?: string;
   columns: string[];
   rows: Record<string, any>[];
+  frequency: number;
+  lastexec_time: Date;
 }
 
 const StatPage = () => {
@@ -93,6 +95,8 @@ const StatPage = () => {
           footer: raw.footer,
           columns,
           rows,
+          frequency: raw.frequency,
+          lastexec_time: raw.lastexec_time,
         });
       })
       .catch(console.error)
@@ -139,6 +143,9 @@ const StatPage = () => {
       filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
       sortable: true,
       type: isNumeric ? 'numericColumn' : undefined,
+      enableRowGroup: true,
+      enablePivot: true,
+      enableValue: true,
     };
   });
 
@@ -194,6 +201,8 @@ const StatPage = () => {
         groupName={groupName}
         title={data.title}
         description={data.description}
+        frequency={data.frequency}
+        lastExecTime={data.lastexec_time}
         hasChart={view === 'table' && hasChart}
         onSaveChart={handleSaveChart}
         view={view}
