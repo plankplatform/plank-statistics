@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
 
 interface SaveChartModalProps {
   onClose: () => void;
@@ -11,6 +12,8 @@ interface SaveChartModalProps {
 const SaveChartModal = ({ onClose, onSave }: SaveChartModalProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState('');
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -27,7 +30,7 @@ const SaveChartModal = ({ onClose, onSave }: SaveChartModalProps) => {
   const handleSubmit = () => {
     const trimmed = title.trim();
     if (!trimmed) {
-      alert('Inserisci un nome valido per il grafico.');
+      alert(t('chart.invalid_name'));
       return;
     }
 
@@ -38,23 +41,23 @@ const SaveChartModal = ({ onClose, onSave }: SaveChartModalProps) => {
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Salva grafico</DialogTitle>
+          <DialogTitle>{t('chart.save')}</DialogTitle>
         </DialogHeader>
         <Input
           ref={inputRef}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Nome del grafico"
+          placeholder={t('chart.name_placeholder')}
         />
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="outline" onClick={onClose}>
-            Annulla
+            {t('button.cancel')}
           </Button>
           <Button
             className="bg-plank-pink text-white hover:bg-plank-pink/90"
             onClick={handleSubmit}
           >
-            Salva
+            {t('button.save')}
           </Button>
         </div>
       </DialogContent>

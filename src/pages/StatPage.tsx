@@ -11,6 +11,7 @@ import StatChart from '../components/StatChart';
 import StatTable from '../components/StatTable';
 import SaveChartModal from '../components/SaveChartModal';
 import type { ChartModel } from 'ag-grid-community';
+import { useTranslation } from 'react-i18next';
 
 ModuleRegistry.registerModules([
   AllEnterpriseModule,
@@ -62,6 +63,7 @@ interface StatData {
 }
 
 const StatPage = () => {
+  const { t } = useTranslation();
   const params = useParams();
   const statId = Number(params.statId ?? '');
   const groupName = params.groupName ?? '';
@@ -223,9 +225,7 @@ const StatPage = () => {
         (graphsLoading ? (
           <Loader />
         ) : graphs.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center italic mt-24">
-            Non ci sono grafici salvati per questa statistica.
-          </p>
+          <p className="text-gray-500 text-sm text-center italic mt-24">{t('chart.empty_state')}</p>
         ) : (
           <div className="space-y-12 mt-2">
             {graphs.map((graph) => (

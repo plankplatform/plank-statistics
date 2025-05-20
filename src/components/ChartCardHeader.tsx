@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { Pencil, Save, Star, StarOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ChartCardHeaderProps {
   title: string;
@@ -29,6 +30,7 @@ const ChartCardHeader = ({
   const [editing, setEditing] = useState(false);
   const [localTitle, setLocalTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setLocalTitle(title);
@@ -65,7 +67,7 @@ const ChartCardHeader = ({
         ) : (
           <h3 className="text-base font-semibold text-gray-800 truncate">
             {localTitle.trim() === '' ? (
-              <span className="italic text-gray-400">Senza titolo</span>
+              <span className="italic text-gray-400"> {t('chart.no_title')}</span>
             ) : (
               localTitle
             )}
@@ -75,7 +77,9 @@ const ChartCardHeader = ({
 
       <div className="flex gap-1 items-center ml-2">
         {justSaved && (
-          <span className="text-xs text-gray-500 font-medium animate-fade-in">Salvato</span>
+          <span className="text-xs text-gray-500 font-medium animate-fade-in">
+            {t('label.saved')}
+          </span>
         )}
 
         <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave}>
@@ -103,16 +107,16 @@ const ChartCardHeader = ({
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <div className="text-sm">Vuoi eliminare il grafico?</div>
+            <div className="text-sm">{t('chart.confirm_delete')}</div>
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="outline" onClick={() => setShowDialog(false)}>
-                Annulla
+                {t('button.cancel')}
               </Button>
               <Button
                 className="bg-plank-pink text-white hover:bg-plank-pink/90"
                 onClick={onConfirmDelete}
               >
-                Elimina
+                {t('button.delete')}
               </Button>
             </div>
           </DialogContent>

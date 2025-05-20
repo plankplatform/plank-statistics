@@ -1,0 +1,37 @@
+{
+    "stats": {
+        "empty": "No statistics available."
+    },
+    "chart": {
+        "empty_state": "There are no saved charts for this statistic.",
+        "no_starred": "No starred charts",
+        "confirm_delete": "Do you want to delete the chart?",
+        "save": "Save chart",
+        "name_placeholder": "Chart name",
+        "no_title": "No title",
+        "invalid_name": "Please enter a valid chart name."
+    },
+    "view": {
+        "table": "Table",
+        "graphs": "Charts"
+    },
+    "button": {
+        "save_chart": "Save chart",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "save": "Save"
+    },
+    "label": {
+        "last_update": "Last update:",
+        "refresh_interval": "Refresh every:",
+        "saved": "Saved"
+    },
+    "time": {
+        "minute": "minute",
+        "minutes": "minutes",
+        "hour": "hour",
+        "hours": "hours",
+        "day": "day",
+        "days": "days"
+    }
+}

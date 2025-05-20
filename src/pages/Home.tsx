@@ -14,6 +14,7 @@ import {
   setStarredGraphs as cacheStarredGraphs,
   invalidateStarredGraphs,
 } from '../lib/starredGraphsStore';
+import { useTranslation } from 'react-i18next';
 
 type RawGroupedStats = {
   [group: string]: {
@@ -41,6 +42,7 @@ const Home = () => {
     {}
   );
   const [loadingStarred, setLoadingStarred] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     apiFetch<RawGroupedStats>('v1/stats')
@@ -119,9 +121,7 @@ const Home = () => {
       <div className="col-span-3 pl-2 pt-4">
         <div className="w-full max-w-[220px]">
           {groups.length === 0 ? (
-            <div className="text-gray-500 text-sm text-center italic mt-24">
-              Non sono presenti statistiche.
-            </div>
+            <div className="text-gray-500 text-sm text-center italic mt-24">{t('stats.empty')}</div>
           ) : (
             <Accordion type="multiple" className="w-full space-y-4">
               {groups.map((group) => (
@@ -154,7 +154,7 @@ const Home = () => {
       <div className="col-span-9 pr-4 mb-24">
         {starredGraphs.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[300px]">
-            <p className="text-sm italic text-gray-500">Nessun grafico preferito</p>
+            <p className="text-sm italic text-gray-500">{t('chart.no_starred')}</p>
           </div>
         ) : (
           <div className="space-y-6">

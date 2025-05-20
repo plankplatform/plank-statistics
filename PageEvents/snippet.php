@@ -1,7 +1,17 @@
 <?php
 
 $token = $_SESSION['api_token'] ?? '';
+$language = $_SESSION['language']?? 'boh';
+
+echo '
+  <script>
+    const language = ' . json_encode($language) . ';
+    sessionStorage.setItem("language", language);
+  </script>
+';
+
 $cacheBuster = time();
+$currentVersion = '1.0.8';
 
 require_once dirname(__DIR__, 3) . '/utility/config/config.php';
 
@@ -42,11 +52,21 @@ echo '
   </script>
 ';
 
+echo "
+  <script>
+    window.addEventListener('message', function (event) {
+      if (event.data && event.data.type === 'externalClick') {
+        document.body.click();
+      }
+    });
+  </script>
+";
+
 if(APP_ENV === 'prod') {
   echo '
     <iframe
       id="iframe-host"
-      src="/plank/PageEvents/plank_statistics_dashboard/index.html?v=' . $cacheBuster . '"
+      src="/plank/PageEvents/plank_statistics_dashboard/index.html?v=' . $currentVersion . '"
     ></iframe>
   ';
 } else {

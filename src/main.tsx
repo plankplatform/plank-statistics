@@ -3,9 +3,10 @@ import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
-
+import './i18n';
 import 'ag-grid-enterprise';
 import { LicenseManager } from 'ag-grid-enterprise';
+import i18n from 'i18next';
 
 const licenseKey = import.meta.env.VITE_AG_GRID_LICENSE;
 if (licenseKey) {
@@ -14,7 +15,15 @@ if (licenseKey) {
 
 const env = import.meta.env.VITE_APP_ENV;
 
-console.log('Environment:', env);
+if (sessionStorage.getItem('language')) {
+  if (sessionStorage.getItem('language') === 'Italian') {
+    i18n.changeLanguage('it');
+  } else if (sessionStorage.getItem('language') === 'English') {
+    i18n.changeLanguage('en');
+  }
+} else {
+  i18n.changeLanguage('en');
+}
 
 async function setup() {
   if (env === 'local') {

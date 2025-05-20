@@ -4,6 +4,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
 import { formatDistanceToNow, format } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 interface StatHeaderProps {
   groupName: string;
@@ -17,14 +18,6 @@ interface StatHeaderProps {
   lastExecTime: Date;
 }
 
-const formatFrequency = (minutes: number): string => {
-  if (minutes < 60) return `${minutes} minuto${minutes > 1 ? 'i' : ''}`;
-  const hours = minutes / 60;
-  if (hours < 24) return `${hours} ${hours === 1 ? 'ora' : 'ore'}`;
-  const days = hours / 24;
-  return `${days} ${days === 1 ? 'giorno' : 'giorni'}`;
-};
-
 const StatHeader = ({
   groupName,
   title,
@@ -36,6 +29,16 @@ const StatHeader = ({
   frequency,
   lastExecTime,
 }: StatHeaderProps) => {
+  const { t } = useTranslation();
+
+  const formatFrequency = (minutes: number): string => {
+    if (minutes < 60) return `${minutes} ${t('time.minute')}${minutes > 1 ? 'i' : ''}`;
+    const hours = minutes / 60;
+    if (hours < 24) return `${hours} ${hours === 1 ? t('time.hour') : t('time.hours')}`;
+    const days = hours / 24;
+    return `${days} ${days === 1 ? t('time.day') : t('time.days')}`;
+  };
+
   return (
     <div className="mb-2 pb-2">
       <div className="grid grid-cols-3 items-center">
@@ -64,13 +67,13 @@ const StatHeader = ({
               value="table"
               className="px-4 py-2 text-sm data-[state=on]:bg-plank-pink data-[state=on]:text-white"
             >
-              Tabella
+              {t('view.table')}
             </ToggleGroupItem>
             <ToggleGroupItem
               value="graphs"
               className="px-4 py-2 text-sm data-[state=on]:bg-plank-pink data-[state=on]:text-white"
             >
-              Grafici
+              {t('view.graphs')}
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
@@ -81,7 +84,7 @@ const StatHeader = ({
               onClick={onSaveChart}
               className="bg-plank-pink text-white hover:bg-plank-pink/90"
             >
-              Salva grafico
+              {t('button.save_chart')}
             </Button>
           )}
         </div>
@@ -91,10 +94,12 @@ const StatHeader = ({
         <div className="col-span-1 truncate pr-4">{description}</div>
         <div className="col-span-2 flex justify-end gap-6">
           <span>
-            Ultimo aggiornamento:{' '}
+            {t('label.last_update')}{' '}
             {lastExecTime ? format(new Date(lastExecTime), 'dd/MM/yyyy HH:mm') : 'N/D'}
           </span>
-          <span>Aggiornamento ogni: {formatFrequency(frequency)}</span>
+          <span>
+            {t('label.refresh_interval')} {formatFrequency(frequency)}
+          </span>
         </div>
       </div>
     </div>
