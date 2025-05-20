@@ -33,6 +33,25 @@ const StatTable = ({
           theme={myTheme}
           pagination={true}
           paginationPageSize={20}
+          sideBar={{
+            defaultToolPanel: undefined,
+            toolPanels: [
+              {
+                id: 'columns',
+                labelDefault: 'Columns',
+                labelKey: 'columns',
+                iconKey: 'columns',
+                toolPanel: 'agColumnsToolPanel',
+              },
+              {
+                id: 'filters',
+                labelDefault: 'Filters',
+                labelKey: 'filters',
+                iconKey: 'filter',
+                toolPanel: 'agFiltersToolPanel',
+              },
+            ],
+          }}
           onGridReady={(params) => {
             apiRef.current = params.api;
             params.api.sizeColumnsToFit();
