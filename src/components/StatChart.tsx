@@ -3,7 +3,7 @@ import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
 import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
 import { ChartModel } from 'ag-grid-community';
-import ChartCardHeader from './ChartCardHeader';
+import StatChartHeader from './StatChartHeader';
 import { apiFetch } from '@/lib/api';
 import { invalidateStarredGraphs } from '@/lib/starredGraphsStore';
 
@@ -18,6 +18,8 @@ interface StatChartsProps {
   onDelete: () => void;
   updateCachedGraph: (graphId: number, updatedData: Partial<any>) => void;
   isStarred: boolean;
+  openTable: boolean;
+  statId: number | string;
 }
 
 const StatChart = ({
@@ -31,6 +33,8 @@ const StatChart = ({
   isStarred: isStarredProp,
   onDelete,
   updateCachedGraph,
+  openTable,
+  statId,
 }: StatChartsProps) => {
   const gridRef = useRef<AgGridReact>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -184,7 +188,7 @@ const StatChart = ({
 
   return (
     <div className="border rounded bg-white">
-      <ChartCardHeader
+      <StatChartHeader
         title={currentTitle}
         onTitleChange={(newTitle) => setCurrentTitle(newTitle)}
         onSave={handleSave}
@@ -194,6 +198,8 @@ const StatChart = ({
         justSaved={justSaved}
         isStarred={isStarred}
         onToggleStar={toggleStar}
+        openTable={openTable}
+        statId={statId}
       />
 
       <div style={{ display: 'none' }}>

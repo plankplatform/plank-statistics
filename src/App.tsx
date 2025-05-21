@@ -19,7 +19,7 @@ function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/group/:groupName/stat/:statId" element={<StatPage />} />
+        <Route path="/stat/:statId" element={<StatPage />} />
       </Routes>
     </div>
   );

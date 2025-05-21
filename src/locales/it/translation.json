@@ -1,37 +1,41 @@
 {
-    "stats": {
-        "empty": "Non sono presenti statistiche."
-    },
-    "chart": {
-        "empty_state": "Non ci sono grafici salvati per questa statistica.",
-        "no_starred": "Nessun grafico preferito",
-        "confirm_delete": "Vuoi eliminare il grafico?",
-        "save": "Salva grafico",
-        "name_placeholder": "Nome del grafico",
-        "no_title": "Nessun titolo",
-        "invalid_name": "Inserisci un nome valido per il grafico."
-    },
-    "view": {
-        "table": "Tabella",
-        "graphs": "Grafici"
-    },
-    "button": {
-        "save_chart": "Salva grafico",
-        "cancel": "Annulla",
-        "delete": "Elimina",
-        "save": "Salva"
-    },
-    "label": {
-        "last_update": "Ultimo aggiornamento:",
-        "refresh_interval": "Aggiornamento ogni:",
-        "saved": "Salvato"
-    },
-    "time": {
-        "minute": "minuto",
-        "minutes": "minuti",
-        "hour": "ora",
-        "hours": "ore",
-        "day": "giorno",
-        "days": "giorni"
-    }
+  "stats": {
+    "empty": "Non sono presenti statistiche."
+  },
+  "chart": {
+    "empty_state": "Non ci sono grafici salvati per questa statistica.",
+    "no_starred": "Nessun grafico preferito",
+    "confirm_delete": "Vuoi eliminare il grafico?",
+    "save": "Salva grafico",
+    "name_placeholder": "Nome del grafico",
+    "no_title": "Nessun titolo",
+    "invalid_name": "Inserisci un nome valido per il grafico."
+  },
+  "view": {
+    "table": "Tabella",
+    "graphs": "Grafici"
+  },
+  "button": {
+    "save_chart": "Salva grafico",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "save": "Salva"
+  },
+  "label": {
+    "last_update": "Ultimo aggiornamento:",
+    "refresh_interval": "Aggiornamento ogni:",
+    "saved": "Salvato"
+  },
+  "time": {
+    "minute": "minuto",
+    "minutes": "minuti",
+    "hour": "ora",
+    "hours": "ore",
+    "day": "giorno",
+    "days": "giorni"
+  },
+  "tooltip": {
+    "save_table": "Salva la tabella",
+    "reset_table": "Ripristina stato iniziale"
+  }
 }
