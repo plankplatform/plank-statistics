@@ -9,6 +9,7 @@ interface StatTableProps {
   columnDefs: any[];
   onChartCreated?: () => void;
   setHasChart: (hasChart: boolean) => void;
+  chartMenuItems: any;
 }
 
 const StatTable = ({
@@ -17,6 +18,7 @@ const StatTable = ({
   columnDefs,
   onChartCreated,
   setHasChart,
+  chartMenuItems,
 }: StatTableProps) => {
   const apiRef = useRef<GridApi | null>(null);
 
@@ -26,6 +28,7 @@ const StatTable = ({
         <AgGridReact
           ref={gridRef}
           enableCharts={true}
+          chartMenuItems={chartMenuItems}
           cellSelection={true}
           rowData={rowData}
           columnDefs={columnDefs}

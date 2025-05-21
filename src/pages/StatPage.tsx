@@ -12,6 +12,11 @@ import StatTable from '../components/StatTable';
 import SaveChartModal from '../components/SaveChartModal';
 import type { ChartModel } from 'ag-grid-community';
 import { useTranslation } from 'react-i18next';
+import type { MenuItemDef } from 'ag-grid-community';
+import ReactDOMServer from 'react-dom/server';
+import { Save } from 'lucide-react';
+
+const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
 ModuleRegistry.registerModules([
   AllEnterpriseModule,
@@ -151,6 +156,20 @@ const StatPage = () => {
     };
   });
 
+  const getCustomChartMenuItems = (params: any): (string | MenuItemDef)[] => {
+    const defaultItems = params.defaultItems;
+
+    const customSaveItem: MenuItemDef = {
+      name: 'Save Chart',
+      action: () => {
+        handleSaveChart();
+      },
+      icon: saveIconSvg,
+    };
+
+    return [customSaveItem, 'separator', ...defaultItems];
+  };
+
   const handleSaveChart = () => {
     const api = gridRef.current?.api;
     const models = api?.getChartModels() || [];
@@ -216,8 +235,8 @@ const StatPage = () => {
           gridRef={gridRef}
           rowData={data.rows}
           columnDefs={columnDefs}
-          onChartCreated={() => setHasChart(true)}
           setHasChart={setHasChart}
+          chartMenuItems={getCustomChartMenuItems}
         />
       </div>
 
