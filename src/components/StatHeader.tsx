@@ -2,8 +2,8 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow, format } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 import { useTranslation } from 'react-i18next';
 
 interface StatHeaderProps {
@@ -30,6 +30,9 @@ const StatHeader = ({
   lastExecTime,
 }: StatHeaderProps) => {
   const { t } = useTranslation();
+
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  console.log('Time zone:', timeZone);
 
   const formatFrequency = (minutes: number): string => {
     if (minutes < 60) return `${minutes} ${t('time.minute')}${minutes > 1 ? 'i' : ''}`;
@@ -95,7 +98,9 @@ const StatHeader = ({
         <div className="col-span-2 flex justify-end gap-6">
           <span>
             {t('label.last_update')}{' '}
-            {lastExecTime ? format(new Date(lastExecTime), 'dd/MM/yyyy HH:mm') : 'N/D'}
+            {lastExecTime
+              ? format(toZonedTime(new Date(lastExecTime), timeZone), 'dd/MM/yyyy HH:mm')
+              : 'N/D'}
           </span>
           <span>
             {t('label.refresh_interval')} {formatFrequency(frequency)}
