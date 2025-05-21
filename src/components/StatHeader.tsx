@@ -23,6 +23,8 @@ interface StatHeaderProps {
   tableColumnState: any;
   statId: number | string;
   onReset: () => void;
+  onSaveGridState: () => void;
+  justSaved: boolean;
 }
 
 const StatHeader = ({
@@ -39,9 +41,10 @@ const StatHeader = ({
   tableColumnState,
   statId,
   onReset,
+  onSaveGridState,
+  justSaved,
 }: StatHeaderProps) => {
   const { t } = useTranslation();
-  const [justSaved, setJustSaved] = useState(false);
 
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -51,24 +54,6 @@ const StatHeader = ({
     if (hours < 24) return `${hours} ${hours === 1 ? t('time.hour') : t('time.hours')}`;
     const days = hours / 24;
     return `${days} ${days === 1 ? t('time.day') : t('time.days')}`;
-  };
-
-  const onSave = async () => {
-    try {
-      await apiFetch(`v1/stats/${statId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          table_filters: tableFilters,
-          table_column_state: tableColumnState,
-        }),
-      });
-
-      setJustSaved(true);
-      setTimeout(() => setJustSaved(false), 2000);
-    } catch (error) {
-      console.error('Errore durante il salvataggio:', error);
-      alert('Errore durante il salvataggio');
-    }
   };
 
   return (
@@ -122,7 +107,12 @@ const StatHeader = ({
               <TooltipProvider>
                 <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onSave}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-10 h-10"
+                      onClick={onSaveGridState}
+                    >
                       <Save className="size-5 text-gray-800" />
                     </Button>
                   </TooltipTrigger>

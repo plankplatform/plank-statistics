@@ -13,6 +13,7 @@ interface StatTableProps {
   onFiltersChange: (filters: any) => void;
   onColumnStateChange: (state: any[]) => void;
   onGridReady: () => void;
+  pivotMode: boolean;
 }
 
 const StatTable = ({
@@ -25,6 +26,7 @@ const StatTable = ({
   onColumnStateChange,
   onFiltersChange,
   onGridReady,
+  pivotMode,
 }: StatTableProps) => {
   const apiRef = useRef<GridApi | null>(null);
 
@@ -40,6 +42,7 @@ const StatTable = ({
           columnDefs={columnDefs}
           domLayout="autoHeight"
           theme={myTheme}
+          pivotMode={pivotMode}
           pagination={true}
           paginationPageSize={20}
           onFilterChanged={(e) => {

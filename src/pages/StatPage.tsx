@@ -89,6 +89,38 @@ const StatPage = () => {
   const [tableFilters, setTableFilters] = useState({});
   const [tableColumnState, setTableColumnState] = useState<any[]>([]);
   const [gridIsReady, setGridIsReady] = useState(false);
+  const [pivotMode, setPivotMode] = useState(false);
+  const [rowGroupCols, setRowGroupCols] = useState<string[]>([]);
+  const [pivotCols, setPivotCols] = useState<string[]>([]);
+  const [valueCols, setValueCols] = useState<string[]>([]);
+  const [justSaved, setJustSaved] = useState(false);
+
+  const handleSaveGridState = async () => {
+    const api = gridRef.current?.api;
+    if (!api) return;
+
+    const grid_state = {
+      filters: api.getFilterModel(),
+      columnState: api.getColumnState(),
+      pivotMode: api.isPivotMode(),
+      rowGroupCols: api.getRowGroupColumns().map((c) => c.getColId()),
+      pivotCols: api.getPivotColumns().map((c) => c.getColId()),
+      valueCols: api.getValueColumns().map((c) => c.getColId()),
+    };
+
+    try {
+      await apiFetch(`v1/stats/${data?.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ grid_state }),
+      });
+
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+    } catch (err) {
+      console.error('Errore durante il salvataggio:', err);
+      alert('Errore durante il salvataggio del layout');
+    }
+  };
 
   const onReset = () => {
     if (!gridRef.current?.api || !gridRef.current?.api) return;
@@ -96,9 +128,16 @@ const StatPage = () => {
     gridRef.current.api.setFilterModel(null);
     gridRef.current.api.resetColumnState();
     gridRef.current.api.autoSizeAllColumns();
+    gridRef.current.api.setRowGroupColumns([]);
+    gridRef.current.api.setPivotColumns([]);
+    gridRef.current.api.setValueColumns([]);
 
     setTableFilters({});
     setTableColumnState(gridRef.current.api.getColumnState());
+    setPivotMode(false);
+    setRowGroupCols([]);
+    setPivotCols([]);
+    setValueCols([]);
   };
 
   const handleGridReady = () => {
@@ -109,11 +148,19 @@ const StatPage = () => {
   const applyInitialGridState = () => {
     if (!gridRef.current?.api || !gridRef.current?.api) return;
 
+    gridRef.current.api.setFilterModel(tableFilters);
+    gridRef.current.api.setRowGroupColumns(rowGroupCols);
+    gridRef.current.api.setPivotColumns(pivotCols);
+    gridRef.current.api.setValueColumns(valueCols);
+
+    gridRef.current.api.applyColumnState({
+      state: tableColumnState,
+      applyOrder: true,
+    });
+
     if (tableFilters && Object.keys(tableFilters).length > 0) {
       gridRef.current.api.setFilterModel(tableFilters);
     }
-
-    console.log('Table column state:', tableColumnState);
 
     if (tableColumnState && tableColumnState.length > 0) {
       gridRef.current.api.applyColumnState({
@@ -123,7 +170,6 @@ const StatPage = () => {
     }
 
     if (!tableColumnState || tableColumnState.length === 0) {
-      console.log('Auto-sizing columns');
       gridRef.current.api.autoSizeAllColumns();
       setTableColumnState(gridRef.current.api.getColumnState());
     }
@@ -149,8 +195,14 @@ const StatPage = () => {
           lastexec_time: raw.lastexec_time,
         });
 
-        setTableFilters(raw.table_filters ? JSON.parse(raw.table_filters) : null);
-        setTableColumnState(raw.table_column_state ? JSON.parse(raw.table_column_state) : {});
+        const parsedGridState = raw.grid_state ? JSON.parse(raw.grid_state) : null;
+
+        setTableFilters(parsedGridState?.filters ?? {});
+        setTableColumnState(parsedGridState?.columnState ?? []);
+        setPivotMode(parsedGridState?.pivotMode ?? false);
+        setRowGroupCols(parsedGridState?.rowGroupCols ?? []);
+        setPivotCols(parsedGridState?.pivotCols ?? []);
+        setValueCols(parsedGridState?.valueCols ?? []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -278,6 +330,8 @@ const StatPage = () => {
         tableFilters={tableFilters}
         tableColumnState={tableColumnState}
         onReset={onReset}
+        onSaveGridState={handleSaveGridState}
+        justSaved={justSaved}
       />
 
       <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>
@@ -290,6 +344,7 @@ const StatPage = () => {
           onFiltersChange={setTableFilters}
           onColumnStateChange={setTableColumnState}
           onGridReady={handleGridReady}
+          pivotMode={pivotMode}
         />
       </div>
 
