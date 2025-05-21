@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
-import { Pencil, Save, Star, StarOff } from 'lucide-react';
+import { Pencil, Save, Star, StarOff, SquareArrowOutUpRight, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
-interface ChartCardHeaderProps {
+interface StatChartHeaderProps {
   title: string;
   onTitleChange: (newTitle: string) => void;
   onConfirmDelete: () => void;
@@ -14,9 +15,11 @@ interface ChartCardHeaderProps {
   justSaved: boolean;
   isStarred: boolean;
   onToggleStar: () => void;
+  openTable: boolean;
+  statId: number | string;
 }
 
-const ChartCardHeader = ({
+const StatChartHeader = ({
   title,
   onTitleChange,
   onConfirmDelete,
@@ -26,7 +29,9 @@ const ChartCardHeader = ({
   justSaved,
   isStarred,
   onToggleStar,
-}: ChartCardHeaderProps) => {
+  openTable,
+  statId,
+}: StatChartHeaderProps) => {
   const [editing, setEditing] = useState(false);
   const [localTitle, setLocalTitle] = useState(title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -100,10 +105,18 @@ const ChartCardHeader = ({
           )}
         </Button>
 
+        {openTable ? (
+          <Link to={`/stat/${statId}`}>
+            <Button variant="ghost" size="icon" className="w-8 h-8">
+              <SquareArrowOutUpRight className="w-4 h-4" />
+            </Button>
+          </Link>
+        ) : null}
+
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
           <DialogTrigger asChild>
             <Button variant="ghost" size="icon" className="text-lg w-8 h-8">
-              ×
+              <X className="w-4 h-4" />
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -126,4 +139,4 @@ const ChartCardHeader = ({
   );
 };
 
-export default ChartCardHeader;
+export default StatChartHeader;

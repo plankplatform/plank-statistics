@@ -134,9 +134,7 @@ const Home = () => {
                       {group.stats.map((stat) => (
                         <Link
                           key={stat.id}
-                          to={`/group/${encodeURIComponent(group.group)}/stat/${encodeURIComponent(
-                            stat.id
-                          )}`}
+                          to={`/stat/${encodeURIComponent(stat.id)}`}
                           className="text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all block rounded"
                         >
                           <div className="text-black text-sm">{stat.title}</div>
@@ -185,6 +183,8 @@ const Home = () => {
                   isStarred={graph.is_starred}
                   data={stat.rows}
                   columns={stat.columns}
+                  openTable={true}
+                  statId={graph.stat_id}
                   onDelete={() => {
                     invalidateStarredGraphs();
                     setStarredGraphs((prev) => prev.filter((g) => g.id !== graph.id));

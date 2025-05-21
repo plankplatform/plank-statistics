@@ -12,6 +12,12 @@ import StatTable from '../components/StatTable';
 import SaveChartModal from '../components/SaveChartModal';
 import type { ChartModel } from 'ag-grid-community';
 import { useTranslation } from 'react-i18next';
+import type { MenuItemDef } from 'ag-grid-community';
+import ReactDOMServer from 'react-dom/server';
+import { Save } from 'lucide-react';
+import { set } from 'date-fns';
+
+const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
 ModuleRegistry.registerModules([
   AllEnterpriseModule,
@@ -80,6 +86,123 @@ const StatPage = () => {
   const [savedGraphsCache, setSavedGraphsCache] = useState<Record<number | string, any[]>>({});
   const [graphsLoading, setGraphsLoading] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
+  const [tableFilters, setTableFilters] = useState({});
+  const [tableColumnState, setTableColumnState] = useState<any[]>([]);
+  const [gridIsReady, setGridIsReady] = useState(false);
+  const [pivotMode, setPivotMode] = useState(false);
+  const [rowGroupCols, setRowGroupCols] = useState<string[]>([]);
+  const [pivotCols, setPivotCols] = useState<string[]>([]);
+  const [valueCols, setValueCols] = useState<string[]>([]);
+  const [justSaved, setJustSaved] = useState(false);
+
+  const handleSaveGridState = async () => {
+    const api = gridRef.current?.api;
+    if (!api) return;
+
+    const grid_state = {
+      filters: api.getFilterModel(),
+      columnState: api.getColumnState(),
+      pivotMode: api.isPivotMode(),
+      rowGroupCols: api.getRowGroupColumns().map((c) => c.getColId()),
+      pivotCols: api.getPivotColumns().map((c) => c.getColId()),
+      valueCols: api.getValueColumns().map((c) => c.getColId()),
+    };
+
+    try {
+      await apiFetch(`v1/stats/${data?.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ grid_state }),
+      });
+
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+    } catch (err) {
+      console.error('Errore durante il salvataggio:', err);
+      alert('Errore durante il salvataggio del layout');
+    }
+  };
+
+  const onReset = () => {
+    if (!gridRef.current?.api || !gridRef.current?.api) return;
+
+    gridRef.current.api.setFilterModel(null);
+    gridRef.current.api.resetColumnState();
+    //gridRef.current.api.autoSizeAllColumns();
+    gridRef.current.api.sizeColumnsToFit();
+    gridRef.current.api.setRowGroupColumns([]);
+    gridRef.current.api.setPivotColumns([]);
+    gridRef.current.api.setValueColumns([]);
+
+    setTableFilters({});
+    setTableColumnState(gridRef.current.api.getColumnState());
+    setPivotMode(false);
+    setRowGroupCols([]);
+    setPivotCols([]);
+    setValueCols([]);
+  };
+
+  const handleGridReady = () => {
+    applyInitialGridState();
+    setGridIsReady(true);
+  };
+
+  const applyInitialGridState = async () => {
+    if (!gridRef.current?.api || !data) return;
+
+    const api = gridRef.current.api;
+
+    if (
+      tableColumnState?.length > 0 ||
+      pivotCols.length ||
+      rowGroupCols.length ||
+      valueCols.length
+    ) {
+      api.setFilterModel(tableFilters);
+      api.setRowGroupColumns(rowGroupCols);
+      api.setPivotColumns(pivotCols);
+      api.setValueColumns(valueCols);
+
+      api.applyColumnState({
+        state: tableColumnState,
+        applyOrder: true,
+      });
+
+      setGridIsReady(true);
+    } else {
+      //api.autoSizeAllColumns();
+      api.sizeColumnsToFit();
+
+      const currentState = api.getColumnState();
+      const grid_state = {
+        filters: {},
+        columnState: currentState,
+        pivotMode: false,
+        rowGroupCols: [],
+        pivotCols: [],
+        valueCols: [],
+      };
+
+      try {
+        await apiFetch(`v1/stats/${statId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ grid_state }),
+        });
+
+        setTableFilters({});
+        setTableColumnState(currentState);
+        setPivotMode(false);
+        setRowGroupCols([]);
+        setPivotCols([]);
+        setValueCols([]);
+
+        console.log('Grid state autosize salvato');
+      } catch (err) {
+        console.error('Errore salvataggio grid_state:', err);
+      } finally {
+        setGridIsReady(true);
+      }
+    }
+  };
 
   useEffect(() => {
     if (isNaN(statId)) return;
@@ -100,6 +223,15 @@ const StatPage = () => {
           frequency: raw.frequency,
           lastexec_time: raw.lastexec_time,
         });
+
+        const parsedGridState = raw.grid_state ? JSON.parse(raw.grid_state) : null;
+
+        setTableFilters(parsedGridState?.filters ?? {});
+        setTableColumnState(parsedGridState?.columnState ?? []);
+        setPivotMode(parsedGridState?.pivotMode ?? false);
+        setRowGroupCols(parsedGridState?.rowGroupCols ?? []);
+        setPivotCols(parsedGridState?.pivotCols ?? []);
+        setValueCols(parsedGridState?.valueCols ?? []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -151,6 +283,20 @@ const StatPage = () => {
     };
   });
 
+  const getCustomChartMenuItems = (params: any): (string | MenuItemDef)[] => {
+    const defaultItems = params.defaultItems;
+
+    const customSaveItem: MenuItemDef = {
+      name: 'Save Chart',
+      action: () => {
+        handleSaveChart();
+      },
+      icon: saveIconSvg,
+    };
+
+    return [customSaveItem, 'separator', ...defaultItems];
+  };
+
   const handleSaveChart = () => {
     const api = gridRef.current?.api;
     const models = api?.getChartModels() || [];
@@ -201,6 +347,7 @@ const StatPage = () => {
     <div className="px-6 py-4 w-5/6 mx-auto mb-24">
       <StatHeader
         groupName={groupName}
+        statId={data.id}
         title={data.title}
         description={data.description}
         frequency={data.frequency}
@@ -209,15 +356,25 @@ const StatPage = () => {
         onSaveChart={handleSaveChart}
         view={view}
         onChangeView={setView}
+        tableFilters={tableFilters}
+        tableColumnState={tableColumnState}
+        onReset={onReset}
+        onSaveGridState={handleSaveGridState}
+        justSaved={justSaved}
       />
 
-      <div className={view === 'table' ? '' : 'hidden'}>
+      <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>
         <StatTable
+          key={gridIsReady ? 'ready' : 'waiting'}
           gridRef={gridRef}
           rowData={data.rows}
           columnDefs={columnDefs}
-          onChartCreated={() => setHasChart(true)}
           setHasChart={setHasChart}
+          chartMenuItems={getCustomChartMenuItems}
+          onFiltersChange={setTableFilters}
+          onColumnStateChange={setTableColumnState}
+          onGridReady={handleGridReady}
+          pivotMode={pivotMode}
         />
       </div>
 
@@ -239,6 +396,8 @@ const StatPage = () => {
                   chartId={graph.id}
                   title={graph.title}
                   isStarred={graph.is_starred}
+                  openTable={false}
+                  statId={data.id}
                   onDelete={() => {
                     setSavedGraphsCache((prev) => {
                       const updated = { ...prev };
