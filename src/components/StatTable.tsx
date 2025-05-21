@@ -72,7 +72,6 @@ const StatTable = ({
           }}
           onGridReady={(params) => {
             apiRef.current = params.api;
-            //params.api.sizeColumnsToFit();
             onGridReady();
           }}
           onChartCreated={() => {

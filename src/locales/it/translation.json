@@ -35,6 +35,7 @@
     "days": "giorni"
   },
   "tooltip": {
-    "save_table": "Salva la tabella"
+    "save_table": "Salva la tabella",
+    "reset_table": "Ripristina stato iniziale"
   }
 }

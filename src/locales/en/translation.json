@@ -35,6 +35,7 @@
     "days": "days"
   },
   "tooltip": {
-    "save_table": "Save table"
+    "save_table": "Save table",
+    "reset_table": "Reset table"
   }
 }

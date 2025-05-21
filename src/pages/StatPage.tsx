@@ -90,6 +90,17 @@ const StatPage = () => {
   const [tableColumnState, setTableColumnState] = useState<any[]>([]);
   const [gridIsReady, setGridIsReady] = useState(false);
 
+  const onReset = () => {
+    if (!gridRef.current?.api || !gridRef.current?.api) return;
+
+    gridRef.current.api.setFilterModel(null);
+    gridRef.current.api.resetColumnState();
+    gridRef.current.api.autoSizeAllColumns();
+
+    setTableFilters({});
+    setTableColumnState(gridRef.current.api.getColumnState());
+  };
+
   const handleGridReady = () => {
     applyInitialGridState();
     setGridIsReady(true);
@@ -102,11 +113,19 @@ const StatPage = () => {
       gridRef.current.api.setFilterModel(tableFilters);
     }
 
+    console.log('Table column state:', tableColumnState);
+
     if (tableColumnState && tableColumnState.length > 0) {
       gridRef.current.api.applyColumnState({
         state: tableColumnState,
         applyOrder: true,
       });
+    }
+
+    if (!tableColumnState || tableColumnState.length === 0) {
+      console.log('Auto-sizing columns');
+      gridRef.current.api.autoSizeAllColumns();
+      setTableColumnState(gridRef.current.api.getColumnState());
     }
   };
 
@@ -130,12 +149,8 @@ const StatPage = () => {
           lastexec_time: raw.lastexec_time,
         });
 
-        if (raw.table_filters) {
-          setTableFilters(JSON.parse(raw.table_filters));
-        }
-        if (raw.table_column_state) {
-          setTableColumnState(JSON.parse(raw.table_column_state));
-        }
+        setTableFilters(raw.table_filters ? JSON.parse(raw.table_filters) : null);
+        setTableColumnState(raw.table_column_state ? JSON.parse(raw.table_column_state) : {});
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -262,6 +277,7 @@ const StatPage = () => {
         onChangeView={setView}
         tableFilters={tableFilters}
         tableColumnState={tableColumnState}
+        onReset={onReset}
       />
 
       <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>

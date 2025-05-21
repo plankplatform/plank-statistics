@@ -1,4 +1,4 @@
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ interface StatHeaderProps {
   tableFilters: any;
   tableColumnState: any;
   statId: number | string;
+  onReset: () => void;
 }
 
 const StatHeader = ({
@@ -37,6 +38,7 @@ const StatHeader = ({
   tableFilters,
   tableColumnState,
   statId,
+  onReset,
 }: StatHeaderProps) => {
   const { t } = useTranslation();
   const [justSaved, setJustSaved] = useState(false);
@@ -114,20 +116,34 @@ const StatHeader = ({
               {t('label.saved')}
             </span>
           )}
-          {view === 'table' ? (
-            <TooltipProvider>
-              <Tooltip delayDuration={300}>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onSave}>
-                    <Save className="size-5 text-gray-800" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t('tooltip.save_table')}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : null}
+
+          {view === 'table' && (
+            <>
+              <TooltipProvider>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onSave}>
+                      <Save className="size-5 text-gray-800" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('tooltip.save_table')}</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onReset}>
+                      <RotateCcw className="size-5 text-gray-800" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('tooltip.reset_table')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </>
+          )}
         </div>
       </div>
 
