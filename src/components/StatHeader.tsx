@@ -7,6 +7,7 @@ import { toZonedTime } from 'date-fns-tz';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/api';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface StatHeaderProps {
   groupName: string;
@@ -114,9 +115,18 @@ const StatHeader = ({
             </span>
           )}
           {view === 'table' ? (
-            <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onSave}>
-              <Save className="size-5 text-gray-800" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onSave}>
+                    <Save className="size-5 text-gray-800" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('tooltip.save_table')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           ) : null}
         </div>
       </div>

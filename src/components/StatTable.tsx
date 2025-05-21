@@ -48,6 +48,9 @@ const StatTable = ({
           onSortChanged={(e) => {
             onColumnStateChange(e.api.getColumnState());
           }}
+          onColumnResized={(e) => {
+            onColumnStateChange(e.api.getColumnState());
+          }}
           sideBar={{
             defaultToolPanel: undefined,
             toolPanels: [
@@ -69,7 +72,7 @@ const StatTable = ({
           }}
           onGridReady={(params) => {
             apiRef.current = params.api;
-            params.api.sizeColumnsToFit();
+            //params.api.sizeColumnsToFit();
             onGridReady();
           }}
           onChartCreated={() => {
