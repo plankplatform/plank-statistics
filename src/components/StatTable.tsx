@@ -10,6 +10,9 @@ interface StatTableProps {
   onChartCreated?: () => void;
   setHasChart: (hasChart: boolean) => void;
   chartMenuItems: any;
+  onFiltersChange: (filters: any) => void;
+  onColumnStateChange: (state: any[]) => void;
+  onGridReady: () => void;
 }
 
 const StatTable = ({
@@ -19,6 +22,9 @@ const StatTable = ({
   onChartCreated,
   setHasChart,
   chartMenuItems,
+  onColumnStateChange,
+  onFiltersChange,
+  onGridReady,
 }: StatTableProps) => {
   const apiRef = useRef<GridApi | null>(null);
 
@@ -36,6 +42,12 @@ const StatTable = ({
           theme={myTheme}
           pagination={true}
           paginationPageSize={20}
+          onFilterChanged={(e) => {
+            onFiltersChange(e.api.getFilterModel());
+          }}
+          onSortChanged={(e) => {
+            onColumnStateChange(e.api.getColumnState());
+          }}
           sideBar={{
             defaultToolPanel: undefined,
             toolPanels: [
@@ -58,6 +70,7 @@ const StatTable = ({
           onGridReady={(params) => {
             apiRef.current = params.api;
             params.api.sizeColumnsToFit();
+            onGridReady();
           }}
           onChartCreated={() => {
             onChartCreated?.();

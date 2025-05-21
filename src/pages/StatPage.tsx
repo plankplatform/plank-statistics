@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import type { MenuItemDef } from 'ag-grid-community';
 import ReactDOMServer from 'react-dom/server';
 import { Save } from 'lucide-react';
+import { set } from 'date-fns';
 
 const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
@@ -85,6 +86,29 @@ const StatPage = () => {
   const [savedGraphsCache, setSavedGraphsCache] = useState<Record<number | string, any[]>>({});
   const [graphsLoading, setGraphsLoading] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
+  const [tableFilters, setTableFilters] = useState({});
+  const [tableColumnState, setTableColumnState] = useState<any[]>([]);
+  const [gridIsReady, setGridIsReady] = useState(false);
+
+  const handleGridReady = () => {
+    applyInitialGridState();
+    setGridIsReady(true);
+  };
+
+  const applyInitialGridState = () => {
+    if (!gridRef.current?.api || !gridRef.current?.api) return;
+
+    if (tableFilters && Object.keys(tableFilters).length > 0) {
+      gridRef.current.api.setFilterModel(tableFilters);
+    }
+
+    if (tableColumnState && tableColumnState.length > 0) {
+      gridRef.current.api.applyColumnState({
+        state: tableColumnState,
+        applyOrder: true,
+      });
+    }
+  };
 
   useEffect(() => {
     if (isNaN(statId)) return;
@@ -105,6 +129,13 @@ const StatPage = () => {
           frequency: raw.frequency,
           lastexec_time: raw.lastexec_time,
         });
+
+        if (raw.table_filters) {
+          setTableFilters(JSON.parse(raw.table_filters));
+        }
+        if (raw.table_column_state) {
+          setTableColumnState(JSON.parse(raw.table_column_state));
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -220,6 +251,7 @@ const StatPage = () => {
     <div className="px-6 py-4 w-5/6 mx-auto mb-24">
       <StatHeader
         groupName={groupName}
+        statId={data.id}
         title={data.title}
         description={data.description}
         frequency={data.frequency}
@@ -228,15 +260,20 @@ const StatPage = () => {
         onSaveChart={handleSaveChart}
         view={view}
         onChangeView={setView}
+        tableFilters={tableFilters}
+        tableColumnState={tableColumnState}
       />
 
-      <div className={view === 'table' ? '' : 'hidden'}>
+      <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>
         <StatTable
           gridRef={gridRef}
           rowData={data.rows}
           columnDefs={columnDefs}
           setHasChart={setHasChart}
           chartMenuItems={getCustomChartMenuItems}
+          onFiltersChange={setTableFilters}
+          onColumnStateChange={setTableColumnState}
+          onGridReady={handleGridReady}
         />
       </div>
 

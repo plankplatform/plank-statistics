@@ -1,10 +1,12 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/api';
 
 interface StatHeaderProps {
   groupName: string;
@@ -16,6 +18,9 @@ interface StatHeaderProps {
   onChangeView: (view: 'table' | 'graphs') => void;
   frequency: number;
   lastExecTime: Date;
+  tableFilters: any;
+  tableColumnState: any;
+  statId: number | string;
 }
 
 const StatHeader = ({
@@ -28,11 +33,14 @@ const StatHeader = ({
   onChangeView,
   frequency,
   lastExecTime,
+  tableFilters,
+  tableColumnState,
+  statId,
 }: StatHeaderProps) => {
   const { t } = useTranslation();
+  const [justSaved, setJustSaved] = useState(false);
 
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  console.log('Time zone:', timeZone);
 
   const formatFrequency = (minutes: number): string => {
     if (minutes < 60) return `${minutes} ${t('time.minute')}${minutes > 1 ? 'i' : ''}`;
@@ -40,6 +48,24 @@ const StatHeader = ({
     if (hours < 24) return `${hours} ${hours === 1 ? t('time.hour') : t('time.hours')}`;
     const days = hours / 24;
     return `${days} ${days === 1 ? t('time.day') : t('time.days')}`;
+  };
+
+  const onSave = async () => {
+    try {
+      await apiFetch(`v1/stats/${statId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          table_filters: tableFilters,
+          table_column_state: tableColumnState,
+        }),
+      });
+
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 2000);
+    } catch (error) {
+      console.error('Errore durante il salvataggio:', error);
+      alert('Errore durante il salvataggio');
+    }
   };
 
   return (
@@ -82,14 +108,16 @@ const StatHeader = ({
         </div>
 
         <div className="flex justify-end items-center gap-3">
-          {hasChart && (
-            <Button
-              onClick={onSaveChart}
-              className="bg-plank-pink text-white hover:bg-plank-pink/90"
-            >
-              {t('button.save_chart')}
-            </Button>
+          {justSaved && (
+            <span className="text-xs text-gray-500 font-medium animate-fade-in">
+              {t('label.saved')}
+            </span>
           )}
+          {view === 'table' ? (
+            <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onSave}>
+              <Save className="size-5 text-gray-800" />
+            </Button>
+          ) : null}
         </div>
       </div>
 
