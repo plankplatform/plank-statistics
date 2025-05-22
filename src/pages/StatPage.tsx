@@ -346,18 +346,12 @@ const StatPage = () => {
   return (
     <div className="px-6 py-4 w-5/6 mx-auto mb-24">
       <StatHeader
-        groupName={groupName}
-        statId={data.id}
         title={data.title}
         description={data.description}
         frequency={data.frequency}
         lastExecTime={data.lastexec_time}
-        hasChart={view === 'table' && hasChart}
-        onSaveChart={handleSaveChart}
         view={view}
         onChangeView={setView}
-        tableFilters={tableFilters}
-        tableColumnState={tableColumnState}
         onReset={onReset}
         onSaveGridState={handleSaveGridState}
         justSaved={justSaved}

@@ -5,41 +5,27 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
-import { apiFetch } from '@/lib/api';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface StatHeaderProps {
-  groupName: string;
   title: string;
   description?: string;
-  hasChart: boolean;
-  onSaveChart: () => void;
   view: 'table' | 'graphs';
   onChangeView: (view: 'table' | 'graphs') => void;
   frequency: number;
   lastExecTime: Date;
-  tableFilters: any;
-  tableColumnState: any;
-  statId: number | string;
   onReset: () => void;
   onSaveGridState: () => void;
   justSaved: boolean;
 }
 
 const StatHeader = ({
-  groupName,
   title,
   description,
-  hasChart,
-  onSaveChart,
   view,
   onChangeView,
   frequency,
   lastExecTime,
-  tableFilters,
-  tableColumnState,
-  statId,
   onReset,
   onSaveGridState,
   justSaved,
@@ -67,8 +53,8 @@ const StatHeader = ({
           >
             <ArrowLeft className="w-6 h-6" />
           </Link>
-          <div className="text-lg font-medium">{groupName}</div>
-          <span className="text-base text-gray-700">{title}</span>
+          {/* <div className="text-lg font-medium">{groupName}</div> */}
+          <span className="text-lg">{title}</span>
         </div>
 
         <div className="flex justify-center">
