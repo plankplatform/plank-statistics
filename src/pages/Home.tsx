@@ -36,7 +36,6 @@ const Home = () => {
     { group: string; stats: { id: number; title: string; description?: string }[] }[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const [showAccordion, setShowAccordion] = useState(false);
 
   const [starredGraphs, setStarredGraphs] = useState<any[]>([]);
   const [statsById, setStatsById] = useState<Record<number, { columns: string[]; rows: any[] }>>(
@@ -119,19 +118,39 @@ const Home = () => {
 
   return (
     <div className="h-screen px-4 md:px-8 py-6 md:py-10 max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
-      <div className="md:col-span-3 pl-0 md:pl-2 pt-0 md:pt-4">
-        <button
-          onClick={() => setShowAccordion((prev) => !prev)}
-          className="md:hidden mb-4 bg-gray-100 text-sm px-4 py-2 rounded"
-        >
-          {showAccordion ? t('stats.hide_menu') : t('stats.show_menu')}
-        </button>
+      {/* Mobile accordion always visible on top */}
+      <div className="block md:hidden">
+        {groups.length === 0 ? (
+          <div className="text-gray-500 text-sm text-center italic mt-24">{t('stats.empty')}</div>
+        ) : (
+          <Accordion type="multiple" className="w-full space-y-4">
+            {groups.map((group) => (
+              <AccordionItem key={group.group} value={group.group}>
+                <AccordionTrigger className="text-sm text-black hover:text-gray-800 transition-colors">
+                  {group.group}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {group.stats.map((stat) => (
+                      <Link
+                        key={stat.id}
+                        to={`/stat/${encodeURIComponent(stat.id)}`}
+                        className="text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-all block rounded"
+                      >
+                        <div className="text-black text-sm">{stat.title}</div>
+                      </Link>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        )}
+      </div>
 
-        <div
-          className={`${
-            showAccordion ? 'block' : 'hidden'
-          } md:block w-full max-w-full md:max-w-[220px]`}
-        >
+      {/* Desktop sidebar accordion */}
+      <div className="hidden md:block md:col-span-3 pl-0 md:pl-2 pt-0 md:pt-4">
+        <div className="w-full max-w-full md:max-w-[220px]">
           {groups.length === 0 ? (
             <div className="text-gray-500 text-sm text-center italic mt-24">{t('stats.empty')}</div>
           ) : (
@@ -161,6 +180,7 @@ const Home = () => {
         </div>
       </div>
 
+      {/* Main content */}
       <div className="md:col-span-9 pr-0 md:pr-4 mb-24">
         {starredGraphs.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[300px]">
