@@ -44,7 +44,6 @@ const StatHeader = ({
 
   return (
     <div className="mb-2 pb-2">
-      {/* Riga principale: ← titolo, toggle, azioni */}
       <div className="flex flex-col md:grid md:grid-cols-3 md:items-center gap-2">
         <div className="flex items-center gap-3">
           <Tooltip delayDuration={300}>
@@ -62,7 +61,7 @@ const StatHeader = ({
           <span className="text-lg">{title}</span>
         </div>
 
-        <div className="flex justify-start md:justify-center">
+        <div className="flex justify-center">
           <ToggleGroup
             type="single"
             value={view}
@@ -94,7 +93,7 @@ const StatHeader = ({
           )}
 
           {view === 'table' && (
-            <>
+            <div className="hidden sm:flex items-center gap-3">
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
                   <Button
@@ -121,12 +120,11 @@ const StatHeader = ({
                   <p>{t('tooltip.reset_table')}</p>
                 </TooltipContent>
               </Tooltip>
-            </>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Riga info: descrizione + aggiornamento + frequenza */}
       <div className="flex flex-col md:grid md:grid-cols-3 mt-2 text-sm text-gray-600 gap-1 md:gap-0">
         <div className="pr-4">{description}</div>
         <div className="md:col-span-2 flex flex-col md:flex-row md:justify-end gap-1 md:gap-6">
