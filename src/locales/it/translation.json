@@ -36,6 +36,7 @@
   },
   "tooltip": {
     "save_table": "Salva la tabella",
-    "reset_table": "Ripristina stato iniziale"
+    "reset_table": "Ripristina stato iniziale",
+    "back": "Indietro"
   }
 }

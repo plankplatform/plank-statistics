@@ -36,6 +36,7 @@
   },
   "tooltip": {
     "save_table": "Save table",
-    "reset_table": "Reset table"
+    "reset_table": "Reset table",
+    "back": "Back"
   }
 }

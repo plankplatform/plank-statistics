@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { useTranslation } from 'react-i18next';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StatHeaderProps {
   title: string;
@@ -46,14 +46,18 @@ const StatHeader = ({
     <div className="mb-2 pb-2">
       <div className="grid grid-cols-3 items-center">
         <div className="flex items-center gap-3">
-          <Link
-            to="/"
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-plank-blue transition"
-            title="Torna indietro"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
-          {/* <div className="text-lg font-medium">{groupName}</div> */}
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <Button asChild variant="ghost" size="icon" className="w-10 h-10">
+                <Link to="/">
+                  <ArrowLeft className="size-5 text-gray-800" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('tooltip.back')}</p>
+            </TooltipContent>
+          </Tooltip>
           <span className="text-lg">{title}</span>
         </div>
 
@@ -90,34 +94,32 @@ const StatHeader = ({
 
           {view === 'table' && (
             <>
-              <TooltipProvider>
-                <Tooltip delayDuration={300}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-10 h-10"
-                      onClick={onSaveGridState}
-                    >
-                      <Save className="size-5 text-gray-800" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('tooltip.save_table')}</p>
-                  </TooltipContent>
-                </Tooltip>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-10 h-10"
+                    onClick={onSaveGridState}
+                  >
+                    <Save className="size-5 text-gray-800" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('tooltip.save_table')}</p>
+                </TooltipContent>
+              </Tooltip>
 
-                <Tooltip delayDuration={300}>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onReset}>
-                      <RotateCcw className="size-5 text-gray-800" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('tooltip.reset_table')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onReset}>
+                    <RotateCcw className="size-5 text-gray-800" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('tooltip.reset_table')}</p>
+                </TooltipContent>
+              </Tooltip>
             </>
           )}
         </div>

@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import StatPage from './pages/StatPage';
 import ScrollToTop from './components/ScrollToTop';
 import { useEffect } from 'react';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 function App() {
   useEffect(() => {
@@ -16,11 +17,13 @@ function App() {
 
   return (
     <div>
-      <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/stat/:statId" element={<StatPage />} />
-      </Routes>
+      <TooltipProvider>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/stat/:statId" element={<StatPage />} />
+        </Routes>
+      </TooltipProvider>
     </div>
   );
 }
