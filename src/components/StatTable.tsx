@@ -31,7 +31,7 @@ const StatTable = ({
   const apiRef = useRef<GridApi | null>(null);
 
   return (
-    <div className="w-full">
+    <div className="w-full [&_.ag-paging-panel]:flex-wrap [&_.ag-paging-panel]:px-2 [&_.ag-paging-panel]:py-2">
       <div className="relative" id="chart-container">
         <AgGridReact
           ref={gridRef}

@@ -44,7 +44,8 @@ const StatHeader = ({
 
   return (
     <div className="mb-2 pb-2">
-      <div className="grid grid-cols-3 items-center">
+      {/* Riga principale: ← titolo, toggle, azioni */}
+      <div className="flex flex-col md:grid md:grid-cols-3 md:items-center gap-2">
         <div className="flex items-center gap-3">
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
@@ -61,7 +62,7 @@ const StatHeader = ({
           <span className="text-lg">{title}</span>
         </div>
 
-        <div className="flex justify-center">
+        <div className="flex justify-start md:justify-center">
           <ToggleGroup
             type="single"
             value={view}
@@ -85,7 +86,7 @@ const StatHeader = ({
           </ToggleGroup>
         </div>
 
-        <div className="flex justify-end items-center gap-3">
+        <div className="flex justify-start md:justify-end items-center gap-3">
           {justSaved && (
             <span className="text-xs text-gray-500 font-medium animate-fade-in">
               {t('label.saved')}
@@ -125,9 +126,10 @@ const StatHeader = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 mt-1 text-sm text-gray-600">
-        <div className="col-span-1 truncate pr-4">{description}</div>
-        <div className="col-span-2 flex justify-end gap-6">
+      {/* Riga info: descrizione + aggiornamento + frequenza */}
+      <div className="flex flex-col md:grid md:grid-cols-3 mt-2 text-sm text-gray-600 gap-1 md:gap-0">
+        <div className="pr-4">{description}</div>
+        <div className="md:col-span-2 flex flex-col md:flex-row md:justify-end gap-1 md:gap-6">
           <span>
             {t('label.last_update')}{' '}
             {lastExecTime

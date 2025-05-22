@@ -1,6 +1,8 @@
 {
   "stats": {
-    "empty": "No statistics available."
+    "empty": "No statistics available.",
+    "show_menu": "Show menu",
+    "hide_menu": "Hide menu"
   },
   "chart": {
     "empty_state": "There are no saved charts for this statistic.",
