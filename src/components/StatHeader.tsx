@@ -13,7 +13,7 @@ interface StatHeaderProps {
   view: 'table' | 'graphs';
   onChangeView: (view: 'table' | 'graphs') => void;
   frequency: number;
-  lastExecTime: Date;
+  lastExecTime: string;
   onReset: () => void;
   onSaveGridState: () => void;
   justSaved: boolean;
@@ -31,6 +31,8 @@ const StatHeader = ({
   justSaved,
 }: StatHeaderProps) => {
   const { t } = useTranslation();
+
+  const utcDate = new Date(lastExecTime.replace(' ', 'T') + 'Z');
 
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -131,7 +133,7 @@ const StatHeader = ({
           <span>
             {t('label.last_update')}{' '}
             {lastExecTime
-              ? format(toZonedTime(new Date(lastExecTime), timeZone), 'dd/MM/yyyy HH:mm')
+              ? format(toZonedTime(new Date(utcDate), timeZone), 'dd/MM/yyyy HH:mm')
               : 'N/D'}
           </span>
           <span>

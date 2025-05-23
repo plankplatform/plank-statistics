@@ -65,7 +65,7 @@ interface StatData {
   columns: string[];
   rows: Record<string, any>[];
   frequency: number;
-  lastexec_time: Date;
+  lastexec_time: string;
 }
 
 const StatPage = () => {
@@ -271,12 +271,51 @@ const StatPage = () => {
   if (!data) return <p className="text-center text-gray-600 mt-12">Statistica non trovata</p>;
 
   const columnDefs = data.columns.map((col) => {
-    const isNumeric = data.rows.every((row) => typeof row[col] === 'number');
+    const values = data.rows.map((row) => row[col]);
+
+    const isNumeric = values.every((val) => typeof val === 'number');
+    const isDate = values.every((val) => typeof val === 'string' && !isNaN(Date.parse(val)));
+
+    let filter;
+    let type;
+    let filterParams;
+
+    if (isNumeric) {
+      filter = 'agNumberColumnFilter';
+      type = 'numericColumn';
+    } else if (isDate) {
+      filter = 'agDateColumnFilter';
+      type = 'dateColumn';
+      filterParams = {
+        comparator: (filterDate: Date, cellValue: string) => {
+          const cellDate = new Date(cellValue);
+
+          const cellTime = new Date(
+            cellDate.getFullYear(),
+            cellDate.getMonth(),
+            cellDate.getDate()
+          ).getTime();
+          const filterTime = new Date(
+            filterDate.getFullYear(),
+            filterDate.getMonth(),
+            filterDate.getDate()
+          ).getTime();
+
+          if (cellTime < filterTime) return -1;
+          if (cellTime > filterTime) return 1;
+          return 0;
+        },
+      };
+    } else {
+      filter = 'agTextColumnFilter';
+    }
+
     return {
       field: col,
-      filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
+      filter,
       sortable: true,
-      type: isNumeric ? 'numericColumn' : undefined,
+      type,
+      filterParams,
       enableRowGroup: true,
       enablePivot: true,
       enableValue: true,
