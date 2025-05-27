@@ -1,38 +1,43 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
-import { formatDistanceToNow, format } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 import { useTranslation } from 'react-i18next';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StatHeaderProps {
-  groupName: string;
   title: string;
   description?: string;
-  hasChart: boolean;
-  onSaveChart: () => void;
   view: 'table' | 'graphs';
   onChangeView: (view: 'table' | 'graphs') => void;
   frequency: number;
-  lastExecTime: Date;
+  lastExecTime: string;
+  onReset: () => void;
+  onSaveGridState: () => void;
+  justSaved: boolean;
 }
 
 const StatHeader = ({
-  groupName,
   title,
   description,
-  hasChart,
-  onSaveChart,
   view,
   onChangeView,
   frequency,
   lastExecTime,
+  onReset,
+  onSaveGridState,
+  justSaved,
 }: StatHeaderProps) => {
   const { t } = useTranslation();
 
+  const utcDate = new Date(lastExecTime.replace(' ', 'T') + 'Z');
+
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const formatFrequency = (minutes: number): string => {
-    if (minutes < 60) return `${minutes} ${t('time.minute')}${minutes > 1 ? 'i' : ''}`;
+    if (minutes < 60) return `${minutes} ${minutes === 1 ? t('time.minute') : t('time.minutes')}`;
     const hours = minutes / 60;
     if (hours < 24) return `${hours} ${hours === 1 ? t('time.hour') : t('time.hours')}`;
     const days = hours / 24;
@@ -41,17 +46,21 @@ const StatHeader = ({
 
   return (
     <div className="mb-2 pb-2">
-      <div className="grid grid-cols-3 items-center">
+      <div className="flex flex-col md:grid md:grid-cols-3 md:items-center gap-2">
         <div className="flex items-center gap-3">
-          <Link
-            to="/"
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-plank-blue transition"
-            title="Torna indietro"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
-          <div className="text-lg font-medium">{groupName}</div>
-          <span className="text-base text-gray-700">{title}</span>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <Button asChild variant="ghost" size="icon" className="w-10 h-10">
+                <Link to="/">
+                  <ArrowLeft className="size-5 text-gray-800" />
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('tooltip.back')}</p>
+            </TooltipContent>
+          </Tooltip>
+          <span className="text-lg">{title}</span>
         </div>
 
         <div className="flex justify-center">
@@ -78,24 +87,54 @@ const StatHeader = ({
           </ToggleGroup>
         </div>
 
-        <div className="flex justify-end items-center gap-3">
-          {hasChart && (
-            <Button
-              onClick={onSaveChart}
-              className="bg-plank-pink text-white hover:bg-plank-pink/90"
-            >
-              {t('button.save_chart')}
-            </Button>
+        <div className="flex justify-start md:justify-end items-center gap-3">
+          {justSaved && (
+            <span className="text-xs text-gray-500 font-medium animate-fade-in">
+              {t('label.saved')}
+            </span>
+          )}
+
+          {view === 'table' && (
+            <div className="hidden sm:flex items-center gap-3">
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="w-10 h-10"
+                    onClick={onSaveGridState}
+                  >
+                    <Save className="size-5 text-gray-800" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('tooltip.save_table')}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onReset}>
+                    <RotateCcw className="size-5 text-gray-800" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('tooltip.reset_table')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-3 mt-1 text-sm text-gray-600">
-        <div className="col-span-1 truncate pr-4">{description}</div>
-        <div className="col-span-2 flex justify-end gap-6">
+      <div className="flex flex-col md:grid md:grid-cols-3 mt-2 text-sm text-gray-600 gap-1 md:gap-0">
+        <div className="pr-4">{description}</div>
+        <div className="md:col-span-2 flex flex-col md:flex-row md:justify-end gap-1 md:gap-6">
           <span>
             {t('label.last_update')}{' '}
-            {lastExecTime ? format(new Date(lastExecTime), 'dd/MM/yyyy HH:mm') : 'N/D'}
+            {lastExecTime
+              ? format(toZonedTime(new Date(utcDate), timeZone), 'dd/MM/yyyy HH:mm')
+              : 'N/D'}
           </span>
           <span>
             {t('label.refresh_interval')} {formatFrequency(frequency)}
