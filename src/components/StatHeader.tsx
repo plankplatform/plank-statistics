@@ -37,7 +37,7 @@ const StatHeader = ({
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const formatFrequency = (minutes: number): string => {
-    if (minutes < 60) return `${minutes} ${t('time.minute')}${minutes > 1 ? 'i' : ''}`;
+    if (minutes < 60) return `${minutes} ${minutes === 1 ? t('time.minute') : t('time.minutes')}`;
     const hours = minutes / 60;
     if (hours < 24) return `${hours} ${hours === 1 ? t('time.hour') : t('time.hours')}`;
     const days = hours / 24;
