@@ -26,7 +26,10 @@
   "label": {
     "last_update": "Ultimo aggiornamento:",
     "refresh_interval": "Aggiornamento ogni:",
-    "saved": "Salvato"
+    "saved": "Salvato",
+    "export_csv": "Esporta CSV",
+    "export_excel": "Esporta Excel",
+    "export": "Esporta"
   },
   "time": {
     "minute": "minuto",
