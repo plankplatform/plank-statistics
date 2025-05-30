@@ -160,9 +160,9 @@ const StatHeader = ({
         </div>
       </div>
 
-      <div className="flex flex-col md:grid md:grid-cols-3 mt-2 text-sm text-gray-600 gap-1 md:gap-0">
-        <div className="pr-4">{description}</div>
-        <div className="md:col-span-2 flex flex-col md:flex-row md:justify-end gap-1 md:gap-6">
+      <div className="flex flex-col md:grid md:grid-cols-9 mt-2 text-sm text-gray-600 gap-1 md:gap-0">
+        <div className="pr-4 md:col-span-4">{description}</div>
+        <div className="md:col-span-5 flex flex-col md:flex-row md:justify-end gap-1 md:gap-6">
           <span>
             {t('label.last_update')}{' '}
             {lastExecTime
