@@ -1,3 +1,4 @@
 dist/ -diff
 dist/ linguist-generated
 dist/** -diff
+dist/assets/index.js -diff
