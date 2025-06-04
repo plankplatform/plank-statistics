@@ -1,4 +1,4 @@
-import { ArrowLeft, Save, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Download } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,12 @@ import { format } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { useTranslation } from 'react-i18next';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 interface StatHeaderProps {
   title: string;
@@ -17,6 +23,8 @@ interface StatHeaderProps {
   onReset: () => void;
   onSaveGridState: () => void;
   justSaved: boolean;
+  onDownloadCsv: () => void;
+  onDownloadExcel: () => void;
 }
 
 const StatHeader = ({
@@ -29,6 +37,8 @@ const StatHeader = ({
   onReset,
   onSaveGridState,
   justSaved,
+  onDownloadCsv,
+  onDownloadExcel,
 }: StatHeaderProps) => {
   const { t } = useTranslation();
 
@@ -95,41 +105,64 @@ const StatHeader = ({
           )}
 
           {view === 'table' && (
-            <div className="hidden sm:flex items-center gap-3">
-              <Tooltip delayDuration={300}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="w-10 h-10"
-                    onClick={onSaveGridState}
-                  >
-                    <Save className="size-5 text-gray-800" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t('tooltip.save_table')}</p>
-                </TooltipContent>
-              </Tooltip>
+            <>
+              {/* Desktop version: Save, Reset, Export */}
+              <div className="hidden sm:flex items-center gap-3">
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-10 h-10"
+                      onClick={onSaveGridState}
+                    >
+                      <Save className="size-5 text-gray-800" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('tooltip.save_table')}</p>
+                  </TooltipContent>
+                </Tooltip>
 
-              <Tooltip delayDuration={300}>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onReset}>
-                    <RotateCcw className="size-5 text-gray-800" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t('tooltip.reset_table')}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="w-10 h-10" onClick={onReset}>
+                      <RotateCcw className="size-5 text-gray-800" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('tooltip.reset_table')}</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-10 px-5 gap-2 border border-gray-300 hover:bg-muted transition-colors"
+                    >
+                      <Download className="size-5" />
+                      {t('label.export')}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-32">
+                    <DropdownMenuItem onClick={onDownloadCsv}>
+                      {t('label.export_csv')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={onDownloadExcel}>
+                      {t('label.export_excel')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </>
           )}
         </div>
       </div>
 
-      <div className="flex flex-col md:grid md:grid-cols-3 mt-2 text-sm text-gray-600 gap-1 md:gap-0">
-        <div className="pr-4">{description}</div>
-        <div className="md:col-span-2 flex flex-col md:flex-row md:justify-end gap-1 md:gap-6">
+      <div className="flex flex-col md:grid md:grid-cols-9 mt-2 text-sm text-gray-600 gap-1 md:gap-0">
+        <div className="pr-4 md:col-span-4">{description}</div>
+        <div className="md:col-span-5 flex flex-col md:flex-row md:justify-end gap-1 md:gap-6">
           <span>
             {t('label.last_update')}{' '}
             {lastExecTime
@@ -141,6 +174,29 @@ const StatHeader = ({
           </span>
         </div>
       </div>
+
+      {/* Mobile export button under description */}
+      {view === 'table' && (
+        <div className="mt-4 sm:hidden flex justify-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-10 px-5 gap-2 border border-gray-300 hover:bg-muted transition-colors"
+              >
+                <Download className="size-5" />
+                {t('label.export')}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-32">
+              <DropdownMenuItem onClick={onDownloadCsv}>{t('label.export_csv')}</DropdownMenuItem>
+              <DropdownMenuItem onClick={onDownloadExcel}>
+                {t('label.export_excel')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </div>
   );
 };

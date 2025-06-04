@@ -26,7 +26,10 @@
   "label": {
     "last_update": "Last update:",
     "refresh_interval": "Refresh every:",
-    "saved": "Saved"
+    "saved": "Saved",
+    "export_csv": "Export CSV",
+    "export_excel": "Export Excel",
+    "export": "Export"
   },
   "time": {
     "minute": "minute",

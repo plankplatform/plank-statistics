@@ -122,6 +122,31 @@ const StatPage = () => {
     }
   };
 
+  const onDownloadCsv = () => {
+    const api = gridRef.current?.api;
+    if (!api) {
+      alert('Error downloading CSV');
+      return;
+    }
+    api.exportDataAsCsv({ fileName: `${data?.title || 'export'}.csv` });
+  };
+
+  const onDownloadExcel = () => {
+    const api = gridRef.current?.api;
+    if (!api) {
+      alert('Error downloading Excel');
+      return;
+    }
+    if (api.exportDataAsExcel) {
+      api.exportDataAsExcel({
+        fileName: `${data?.title || 'export'}.xlsx`,
+        sheetName: 'Sheet1',
+      });
+    } else {
+      alert('Error downloading Excel');
+    }
+  };
+
   const onReset = () => {
     if (!gridRef.current?.api || !gridRef.current?.api) return;
 
@@ -394,6 +419,8 @@ const StatPage = () => {
         onReset={onReset}
         onSaveGridState={handleSaveGridState}
         justSaved={justSaved}
+        onDownloadCsv={onDownloadCsv}
+        onDownloadExcel={onDownloadExcel}
       />
 
       <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>
