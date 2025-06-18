@@ -6,6 +6,7 @@ import { ChartModel } from 'ag-grid-community';
 import StatChartHeader from './StatChartHeader';
 import { apiFetch } from '@/lib/api';
 import { invalidateStarredGraphs } from '@/lib/starredGraphsStore';
+import { castNumericValues } from '@/lib/castNumericValues';
 
 interface StatChartsProps {
   model: ChartModel;

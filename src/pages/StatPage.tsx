@@ -16,6 +16,7 @@ import type { MenuItemDef } from 'ag-grid-community';
 import ReactDOMServer from 'react-dom/server';
 import { Save } from 'lucide-react';
 import { set } from 'date-fns';
+import { castNumericValues } from '@/lib/castNumericValues';
 
 const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
@@ -23,19 +24,6 @@ ModuleRegistry.registerModules([
   AllEnterpriseModule,
   IntegratedChartsModule.with(AgChartsEnterpriseModule),
 ]);
-
-function castNumericValues(columns: string[], rows: Record<string, any>[]) {
-  return rows.map((row) => {
-    const newRow = { ...row };
-    columns.forEach((col) => {
-      const val = row[col];
-      if (val !== null && val !== '' && !isNaN(val)) {
-        newRow[col] = Number(val);
-      }
-    });
-    return newRow;
-  });
-}
 
 function normalizeChartOptions(model: ChartModel): ChartModel {
   if (Array.isArray(model.chartOptions)) {
