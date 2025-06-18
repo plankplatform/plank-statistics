@@ -31,7 +31,7 @@ async function setup() {
       console.log('API token already set in sessionStorage');
     } else {
       console.log('Fetching API token...');
-      const response = await fetch('https://api-dev.plank.global/v1/auth/user/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v1/auth/user/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
