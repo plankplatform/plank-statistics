@@ -37,7 +37,6 @@ const StatTable = ({
           ref={gridRef}
           enableCharts={true}
           chartMenuItems={chartMenuItems}
-          cellSelection={true}
           rowData={rowData}
           columnDefs={columnDefs}
           domLayout="autoHeight"
