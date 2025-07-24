@@ -86,7 +86,7 @@ const StatPage = () => {
   const [savedGraphsCache, setSavedGraphsCache] = useState<Record<number | string, any[]>>({});
   const [graphsLoading, setGraphsLoading] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
-  const [tableFilters, setTableFilters] = useState({});
+  const tableFiltersRef = useRef({});
   const [tableColumnState, setTableColumnState] = useState<any[]>([]);
   const [gridIsReady, setGridIsReady] = useState(false);
   const [pivotMode, setPivotMode] = useState(false);
@@ -158,7 +158,7 @@ const StatPage = () => {
     gridRef.current.api.setPivotColumns([]);
     gridRef.current.api.setValueColumns([]);
 
-    setTableFilters({});
+    tableFiltersRef.current = {};
     setTableColumnState(gridRef.current.api.getColumnState());
     setPivotMode(false);
     setRowGroupCols([]);
@@ -182,7 +182,7 @@ const StatPage = () => {
       rowGroupCols.length ||
       valueCols.length
     ) {
-      api.setFilterModel(tableFilters);
+      api.setFilterModel(tableFiltersRef.current);
       api.setRowGroupColumns(rowGroupCols);
       api.setPivotColumns(pivotCols);
       api.setValueColumns(valueCols);
@@ -213,7 +213,7 @@ const StatPage = () => {
           body: JSON.stringify({ grid_state }),
         });
 
-        setTableFilters({});
+        tableFiltersRef.current = {};
         setTableColumnState(currentState);
         setPivotMode(false);
         setRowGroupCols([]);
@@ -251,7 +251,7 @@ const StatPage = () => {
 
         const parsedGridState = raw.grid_state ? JSON.parse(raw.grid_state) : null;
 
-        setTableFilters(parsedGridState?.filters ?? {});
+        tableFiltersRef.current = parsedGridState?.filters ?? {};
         setTableColumnState(parsedGridState?.columnState ?? []);
         setPivotMode(parsedGridState?.pivotMode ?? false);
         setRowGroupCols(parsedGridState?.rowGroupCols ?? []);
@@ -333,6 +333,9 @@ const StatPage = () => {
       };
     } else {
       filter = 'agTextColumnFilter';
+      // filterParams = {
+      //   buttons: ['reset', 'apply'],
+      // };
     }
 
     return {
@@ -431,7 +434,9 @@ const StatPage = () => {
           columnDefs={columnDefs}
           setHasChart={setHasChart}
           chartMenuItems={getCustomChartMenuItems}
-          onFiltersChange={setTableFilters}
+          onFiltersChange={(filters) => {
+            tableFiltersRef.current = filters;
+          }}
           onColumnStateChange={setTableColumnState}
           onGridReady={handleGridReady}
           pivotMode={pivotMode}
