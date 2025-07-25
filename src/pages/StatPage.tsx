@@ -411,7 +411,7 @@ const StatPage = () => {
   const graphs = data ? savedGraphsCache[data.id] ?? [] : [];
 
   return (
-    <div className="px-6 py-4 w-5/6 mx-auto mb-24">
+    <div className="px-6 py-4 w-[95%] mx-auto mb-24">
       <StatHeader
         title={data.title}
         description={data.description}
