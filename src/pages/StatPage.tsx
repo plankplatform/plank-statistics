@@ -94,6 +94,8 @@ const StatPage = () => {
   const [pivotCols, setPivotCols] = useState<string[]>([]);
   const [valueCols, setValueCols] = useState<string[]>([]);
   const [justSaved, setJustSaved] = useState(false);
+  const [currentGridState, setCurrentGridState] = useState<any | null>(null);
+  const [mustCreateDefaultState, setMustCreateDefaultState] = useState(false);
 
   const handleSaveGridState = async () => {
     const api = gridRef.current?.api;
@@ -166,75 +168,90 @@ const StatPage = () => {
     setValueCols([]);
   };
 
-  const handleGridReady = () => {
-    applyInitialGridState();
-    setGridIsReady(true);
-  };
-
-  const applyInitialGridState = async () => {
+  const handleGridReady = async () => {
     if (!gridRef.current?.api || !data) return;
 
     const api = gridRef.current.api;
 
-    if (
-      tableColumnState?.length > 0 ||
-      pivotCols.length ||
-      rowGroupCols.length ||
-      valueCols.length
-    ) {
-      api.setFilterModel(tableFiltersRef.current);
-      api.setRowGroupColumns(rowGroupCols);
-      api.setPivotColumns(pivotCols);
-      api.setValueColumns(valueCols);
+    if (currentGridState) {
+      tableFiltersRef.current = currentGridState.filters ?? {};
+      setTableColumnState(currentGridState.columnState ?? []);
+      setPivotMode(currentGridState.pivotMode ?? false);
+      setRowGroupCols(currentGridState.rowGroupCols ?? []);
+      setPivotCols(currentGridState.pivotCols ?? []);
+      setValueCols(currentGridState.valueCols ?? []);
+
+      api.setFilterModel(currentGridState.filters ?? {});
+      api.setRowGroupColumns(currentGridState.rowGroupCols ?? []);
+      api.setPivotColumns(currentGridState.pivotCols ?? []);
+      api.setValueColumns(currentGridState.valueCols ?? []);
 
       api.applyColumnState({
-        state: tableColumnState,
+        state: currentGridState.columnState ?? [],
         applyOrder: true,
       });
 
       setGridIsReady(true);
-    } else {
-      //api.autoSizeAllColumns();
-      api.sizeColumnsToFit();
+      return;
+    }
 
-      const currentState = api.getColumnState();
-      const grid_state = {
-        filters: {},
-        columnState: currentState,
-        pivotMode: false,
-        rowGroupCols: [],
-        pivotCols: [],
-        valueCols: [],
-      };
+    //api.autoSizeAllColumns();
+    api.sizeColumnsToFit();
 
+    const filters = {};
+    const columnState = api.getColumnState();
+    const rowGroupCols = api.getRowGroupColumns().map((c) => ({ colId: c.getColId() }));
+    const pivotCols = api.getPivotColumns().map((c) => ({ colId: c.getColId() }));
+    const valueCols = api.getValueColumns().map((c) => ({
+      colId: c.getColId(),
+      aggFunc: c.getAggFunc(),
+    }));
+
+    const state = {
+      filters,
+      columnState,
+      pivotMode: false,
+      rowGroupCols,
+      pivotCols,
+      valueCols,
+    };
+
+    if (mustCreateDefaultState) {
       try {
-        await apiFetch(`v1/stats/${statId}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ grid_state }),
+        await apiFetch(`v1/stats/table-states`, {
+          method: 'POST',
+          body: JSON.stringify({
+            name: 'Default',
+            is_default: true,
+            stat_id: data.id,
+            grid_state: state,
+          }),
         });
 
-        tableFiltersRef.current = {};
-        setTableColumnState(currentState);
-        setPivotMode(false);
-        setRowGroupCols([]);
-        setPivotCols([]);
-        setValueCols([]);
-
-        console.log('Grid state autosize salvato');
+        console.log('Stato di default salvato correttamente');
       } catch (err) {
-        console.error('Errore salvataggio grid_state:', err);
-      } finally {
-        setGridIsReady(true);
+        console.error('Errore durante il salvataggio dello stato di default:', err);
       }
     }
+
+    tableFiltersRef.current = filters;
+    setTableColumnState(columnState);
+    setPivotMode(false);
+    setRowGroupCols(rowGroupCols.map((c) => c.colId));
+    setPivotCols(pivotCols.map((c) => c.colId));
+    setValueCols(valueCols.map((c) => c.colId));
+
+    setGridIsReady(true);
   };
 
   useEffect(() => {
     if (isNaN(statId)) return;
-    setLoading(true);
 
-    apiFetch(`v1/stats/${statId}`)
-      .then((raw: any) => {
+    const fetchStatAndTableStates = async () => {
+      setLoading(true);
+      try {
+        const raw = await apiFetch(`v1/stats/${statId}`);
+
         const columns = JSON.parse(raw.columns_order || '[]');
         const rows = castNumericValues(columns, JSON.parse(raw.json_results || '[]'));
 
@@ -249,17 +266,21 @@ const StatPage = () => {
           lastexec_time: raw.lastexec_time,
         });
 
-        const parsedGridState = raw.grid_state ? JSON.parse(raw.grid_state) : null;
+        const tableStates = await apiFetch(`v1/stats/table-states?stat_id=${raw.id}`);
+        if (Array.isArray(tableStates) && tableStates.length > 0) {
+          const defaultState = tableStates.find((s: any) => s.is_default);
+          if (defaultState) setCurrentGridState(defaultState.grid_state);
+        } else {
+          setMustCreateDefaultState(true);
+        }
+      } catch (err) {
+        console.error('Errore caricamento statistica o stati:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        tableFiltersRef.current = parsedGridState?.filters ?? {};
-        setTableColumnState(parsedGridState?.columnState ?? []);
-        setPivotMode(parsedGridState?.pivotMode ?? false);
-        setRowGroupCols(parsedGridState?.rowGroupCols ?? []);
-        setPivotCols(parsedGridState?.pivotCols ?? []);
-        setValueCols(parsedGridState?.valueCols ?? []);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    fetchStatAndTableStates();
   }, [statId]);
 
   useEffect(() => {
