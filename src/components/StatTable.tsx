@@ -41,6 +41,7 @@ const StatTable = ({
           columnDefs={columnDefs}
           domLayout="autoHeight"
           theme={myTheme}
+          cellSelection={true}
           pivotMode={pivotMode}
           pagination={true}
           paginationPageSize={20}
