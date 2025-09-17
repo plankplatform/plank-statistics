@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { ModuleRegistry } from 'ag-grid-community';
 import { AllEnterpriseModule, IntegratedChartsModule } from 'ag-grid-enterprise';
@@ -171,63 +171,32 @@ const StatPage = () => {
     setGridIsReady(true);
   };
 
-  const applyInitialGridState = async () => {
-    if (!gridRef.current?.api || !data) return;
+const applyInitialGridState = async () => {
+  if (!gridRef.current?.api || !data) return;
 
-    const api = gridRef.current.api;
+  const api = gridRef.current.api;
 
-    if (
-      tableColumnState?.length > 0 ||
-      pivotCols.length ||
-      rowGroupCols.length ||
-      valueCols.length
-    ) {
-      api.setFilterModel(tableFiltersRef.current);
-      api.setRowGroupColumns(rowGroupCols);
-      api.setPivotColumns(pivotCols);
-      api.setValueColumns(valueCols);
+  if (
+    tableColumnState?.length > 0 ||
+    pivotCols.length ||
+    rowGroupCols.length ||
+    valueCols.length
+  ) {
+    api.setFilterModel(tableFiltersRef.current);
+    api.setRowGroupColumns(rowGroupCols);
+    api.setPivotColumns(pivotCols);
+    api.setValueColumns(valueCols);
 
-      api.applyColumnState({
-        state: tableColumnState,
-        applyOrder: true,
-      });
+    api.applyColumnState({
+      state: tableColumnState,
+      applyOrder: true,
+    });
+  } else {
+    api.sizeColumnsToFit();
+  }
 
-      setGridIsReady(true);
-    } else {
-      //api.autoSizeAllColumns();
-      api.sizeColumnsToFit();
-
-      const currentState = api.getColumnState();
-      const grid_state = {
-        filters: {},
-        columnState: currentState,
-        pivotMode: false,
-        rowGroupCols: [],
-        pivotCols: [],
-        valueCols: [],
-      };
-
-      try {
-        await apiFetch(`v1/stats/${statId}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ grid_state }),
-        });
-
-        tableFiltersRef.current = {};
-        setTableColumnState(currentState);
-        setPivotMode(false);
-        setRowGroupCols([]);
-        setPivotCols([]);
-        setValueCols([]);
-
-        console.log('Grid state autosize salvato');
-      } catch (err) {
-        console.error('Errore salvataggio grid_state:', err);
-      } finally {
-        setGridIsReady(true);
-      }
-    }
-  };
+  setGridIsReady(true);
+};
 
   useEffect(() => {
     if (isNaN(statId)) return;
@@ -292,63 +261,64 @@ const StatPage = () => {
       .finally(() => setGraphsLoading(false));
   }, [view, data]);
 
+  const columnDefs = useMemo(() => {
+    if (!data) return [];
+    return data.columns.map((col) => {
+      const values = data.rows.map((row) => row[col]);
+
+      const isNumeric = values.every((val) => typeof val === 'number');
+      const isDate = values.every(
+        (val) => typeof val === 'string' && !isNaN(Date.parse(val))
+      );
+
+      let filter: any;
+      let type: any;
+      let filterParams: any;
+
+      if (isNumeric) {
+        filter = 'agNumberColumnFilter';
+        type = 'numericColumn';
+      } else if (isDate) {
+        filter = 'agDateColumnFilter';
+        type = 'dateColumn';
+        filterParams = {
+          comparator: (filterDate: Date, cellValue: string) => {
+            const cellDate = new Date(cellValue);
+            const cellTime = new Date(
+              cellDate.getFullYear(),
+              cellDate.getMonth(),
+              cellDate.getDate()
+            ).getTime();
+            const filterTime = new Date(
+              filterDate.getFullYear(),
+              filterDate.getMonth(),
+              filterDate.getDate()
+            ).getTime();
+            if (cellTime < filterTime) return -1;
+            if (cellTime > filterTime) return 1;
+            return 0;
+          },
+        };
+      } else {
+        filter = 'agTextColumnFilter';
+      }
+
+      return {
+        colId: col,
+        field: col,
+        filter,
+        sortable: true,
+        type,
+        filterParams,
+        enableRowGroup: true,
+        enablePivot: true,
+        enableValue: true,
+      };
+    });
+  }, [data]);
+
   if (loading) return <Loader />;
   if (!data) return <p className="text-center text-gray-600 mt-12">Statistica non trovata</p>;
-
-  const columnDefs = data.columns.map((col) => {
-    const values = data.rows.map((row) => row[col]);
-
-    const isNumeric = values.every((val) => typeof val === 'number');
-    const isDate = values.every((val) => typeof val === 'string' && !isNaN(Date.parse(val)));
-
-    let filter;
-    let type;
-    let filterParams;
-
-    if (isNumeric) {
-      filter = 'agNumberColumnFilter';
-      type = 'numericColumn';
-    } else if (isDate) {
-      filter = 'agDateColumnFilter';
-      type = 'dateColumn';
-      filterParams = {
-        comparator: (filterDate: Date, cellValue: string) => {
-          const cellDate = new Date(cellValue);
-
-          const cellTime = new Date(
-            cellDate.getFullYear(),
-            cellDate.getMonth(),
-            cellDate.getDate()
-          ).getTime();
-          const filterTime = new Date(
-            filterDate.getFullYear(),
-            filterDate.getMonth(),
-            filterDate.getDate()
-          ).getTime();
-
-          if (cellTime < filterTime) return -1;
-          if (cellTime > filterTime) return 1;
-          return 0;
-        },
-      };
-    } else {
-      filter = 'agTextColumnFilter';
-      // filterParams = {
-      //   buttons: ['reset', 'apply'],
-      // };
-    }
-
-    return {
-      field: col,
-      filter,
-      sortable: true,
-      type,
-      filterParams,
-      enableRowGroup: true,
-      enablePivot: true,
-      enableValue: true,
-    };
-  });
 
   const getCustomChartMenuItems = (params: any): (string | MenuItemDef)[] => {
     const defaultItems = params.defaultItems;
