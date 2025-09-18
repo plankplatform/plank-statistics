@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import { myTheme } from '../styles/agTheme';
 import { GridApi } from 'ag-grid-community';
@@ -30,6 +30,10 @@ const StatTable = ({
 }: StatTableProps) => {
   const apiRef = useRef<GridApi | null>(null);
 
+  useEffect(() => {
+    console.log('[StatTable] component rendered');
+  });
+
   return (
     <div className="w-full [&_.ag-paging-panel]:flex-wrap [&_.ag-paging-panel]:px-2 [&_.ag-paging-panel]:py-2">
       <div className="relative" id="chart-container">
@@ -53,6 +57,12 @@ const StatTable = ({
           }}
           onColumnResized={(e) => {
             onColumnStateChange(e.api.getColumnState());
+          }}
+          onColumnMoved={(e) => {
+            const after = e.api.getColumnState();
+            console.log('[Grid] Column moved');
+            console.log('  After :', after);
+            onColumnStateChange(after);
           }}
           sideBar={{
             defaultToolPanel: undefined,
