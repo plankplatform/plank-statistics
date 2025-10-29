@@ -1,9 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
-import { Pencil, Save, Star, StarOff, SquareArrowOutUpRight, X } from 'lucide-react';
+import { Pencil, Save, Star, StarOff, SquareArrowOutUpRight, X, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 interface StatChartHeaderProps {
   title: string;
@@ -86,6 +94,23 @@ const StatChartHeader = ({
             {t('label.saved')}
           </span>
         )}
+
+        {/* Bozza menu per selezionare vecchi grafici */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="w-8 h-8">
+              <Clock className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuLabel>Seleziona grafico</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Versione 1</DropdownMenuItem>
+            <DropdownMenuItem>Versione 2</DropdownMenuItem>
+            <DropdownMenuItem>Versione 3</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave}>
           <Save className="w-4 h-4" />
