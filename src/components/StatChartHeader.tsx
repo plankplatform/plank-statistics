@@ -30,9 +30,9 @@ interface StatChartHeaderProps {
 }
 
 interface StatHistoryItem{
-  idstorico: number;
+  historical_id: number;
   title: string | null;
-  datastoricizzazione: string | null;
+  historical_date: string | null;
 }
 
 const StatChartHeader = ({
@@ -171,13 +171,13 @@ const StatChartHeader = ({
               <DropdownMenuItem disabled>No history available</DropdownMenuItem>
             ) : (
               history.map((item, index) => (
-                <DropdownMenuItem key={item.idstorico}>
+                <DropdownMenuItem key={item.historical_id}>
                 <div  className="flex flex-col">
                   <span className="text-sm font-semibold">
                     Version {index + 1}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {formatHistoryDate(item.datastoricizzazione)}
+                    {formatHistoryDate(item.historical_date)}
                   </span>
                 </div>
               </DropdownMenuItem>
