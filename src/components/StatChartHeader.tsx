@@ -12,6 +12,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { set } from 'date-fns';
+import { apiFetch } from '@/lib/api';
 
 interface StatChartHeaderProps {
   title: string;
@@ -25,6 +27,12 @@ interface StatChartHeaderProps {
   onToggleStar: () => void;
   openTable: boolean;
   statId: number | string;
+}
+
+interface StatHistoryItem{
+  idstorico: number;
+  title: string | null;
+  datastoricizzazione: string | null;
 }
 
 const StatChartHeader = ({
@@ -45,6 +53,14 @@ const StatChartHeader = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
 
+  // History states
+  const [history, setHistory] = useState<StatHistoryItem[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false); // Indica se caricato
+  const [historyLoading, setHistoryLoading] = useState(false); // Indica se in caricamento
+  const [historyError, setHistoryError]  = useState<string | null>(null);
+
+
+
   useEffect(() => {
     setLocalTitle(title);
   }, [title]);
@@ -52,6 +68,47 @@ const StatChartHeader = ({
   useEffect(() => {
     if (editing) inputRef.current?.focus();
   }, [editing]);
+
+  // Reset dello storico quando cambia statId
+  useEffect(() => {
+    setHistory([]);
+    setHistoryLoaded(false);
+    setHistoryError(null);
+  }, [statId]);
+  
+  // Caricamento storico
+  const handleHistoryLoad = async (open: boolean) => {
+    if(!open || historyLoaded || historyLoading) return;
+
+    setHistoryLoading(true);
+    setHistoryError(null);
+
+    try {
+      const response = await apiFetch<StatHistoryItem[]>(`v1/stats/${statId}/history`);
+      setHistory(response);
+      setHistoryLoaded(true);
+
+    } catch (error) {
+      console.error('Error while fetching history:', error);
+      if (error instanceof Error && error.message.includes('404')) {
+        setHistory([]);
+        setHistoryLoaded(true);
+      } else {
+        setHistoryError('Unable to load history');
+      }
+    } finally {
+        setHistoryLoading(false);
+    }
+  };
+
+  // Formatta la data dello storico DD/MM/YYYY HH:mm
+  const formatHistoryDate = (value?: string | null) => {
+    if (!value) return 'Date not available';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return 'Invalid date';
+
+    return parsed.toLocaleString("it-IT");
+  };
 
   return (
     <div className="flex items-center justify-between px-4 py-2 border-b">
@@ -95,8 +152,8 @@ const StatChartHeader = ({
           </span>
         )}
 
-        {/* Bozza menu per selezionare vecchi grafici */}
-        <DropdownMenu>
+        {/* Menu per selezionare vecchi grafici */}
+        <DropdownMenu onOpenChange={handleHistoryLoad}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="w-8 h-8">
               <Clock className="w-4 h-4" />
@@ -104,11 +161,28 @@ const StatChartHeader = ({
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Seleziona grafico</DropdownMenuLabel>
+            <DropdownMenuLabel>Chart History</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Versione 1</DropdownMenuItem>
-            <DropdownMenuItem>Versione 2</DropdownMenuItem>
-            <DropdownMenuItem>Versione 3</DropdownMenuItem>
+            { historyLoading ? (
+              <DropdownMenuItem disabled>Loading...</DropdownMenuItem>
+            ) : historyError ? (
+              <DropdownMenuItem disabled>Error loading history</DropdownMenuItem>
+            ) : history.length === 0 ? (
+              <DropdownMenuItem disabled>No history available</DropdownMenuItem>
+            ) : (
+              history.map((item, index) => (
+                <DropdownMenuItem key={item.idstorico}>
+                <div  className="flex flex-col">
+                  <span className="text-sm font-semibold">
+                    Version {index + 1}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatHistoryDate(item.datastoricizzazione)}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+              ))
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
