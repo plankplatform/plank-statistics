@@ -89,12 +89,12 @@ const StatChartHeader = ({
       setHistoryLoaded(true);
 
     } catch (error) {
-      console.error('Error while fetching history:', error);
+      console.error('Error while fetching chart history:', error);
       if (error instanceof Error && error.message.includes('404')) {
         setHistory([]);
         setHistoryLoaded(true);
       } else {
-        setHistoryError('Unable to load history');
+        setHistoryError('Unable to load chart history');
       }
     } finally {
         setHistoryLoading(false);
@@ -166,9 +166,9 @@ const StatChartHeader = ({
             { historyLoading ? (
               <DropdownMenuItem disabled>Loading...</DropdownMenuItem>
             ) : historyError ? (
-              <DropdownMenuItem disabled>Error loading history</DropdownMenuItem>
+              <DropdownMenuItem disabled>Error loading chart history</DropdownMenuItem>
             ) : history.length === 0 ? (
-              <DropdownMenuItem disabled>No history available</DropdownMenuItem>
+              <DropdownMenuItem disabled>No charthistory available</DropdownMenuItem>
             ) : (
               history.map((item, index) => (
                 <DropdownMenuItem key={item.historical_id}>
