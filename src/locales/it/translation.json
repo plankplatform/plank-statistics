@@ -21,7 +21,8 @@
     "save_chart": "Salva grafico",
     "cancel": "Annulla",
     "delete": "Elimina",
-    "save": "Salva"
+    "save": "Salva",
+    "favorite": "Aggiungi ai preferiti"
   },
   "label": {
     "last_update": "Ultimo aggiornamento:",
@@ -42,6 +43,17 @@
   "tooltip": {
     "save_table": "Salva la tabella",
     "reset_table": "Ripristina stato iniziale",
-    "back": "Indietro"
+    "back": "Indietro",
+    "load_history": "Carica storico"
+  },
+  "history":{
+    "chart_history": "Storico grafico",
+    "loading": "Caricamento...",
+    "error": "Errore nel caricamento dello storico",
+    "no_chart": "Storico grafico non disponibile",
+    "current_version": "Versione attuale",
+    "recent_data": "Data più recente",
+    "date_not_available": "Data non disponibile",
+    "version": "Versione"
   }
 }

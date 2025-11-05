@@ -175,14 +175,14 @@ const StatChartHeader = ({
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-60">
-                <DropdownMenuLabel>Chart History</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('history.chart_history')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {historyLoading ? (
-                  <DropdownMenuItem disabled>Loading...</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{t('history.loading')}</DropdownMenuItem>
                 ) : historyError ? (
-                  <DropdownMenuItem disabled>Error loading chart history</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{t('history.error')}</DropdownMenuItem>
                 ) : history.length === 0 ? (
-                  <DropdownMenuItem disabled>No chart history available</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{t('history.no_chart')}</DropdownMenuItem>
                 ) : (
                   <>
                     <DropdownMenuItem
@@ -190,15 +190,15 @@ const StatChartHeader = ({
                       className={selectedHistoryId === null ? 'bg-gray-100 text-gray-900' : ''}
                     >
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold">Current version</span>
-                        <span className="text-xs text-gray-500">Most recent data</span>
+                        <span className="text-sm font-semibold">{t('history.current_version')}</span>
+                        <span className="text-xs text-gray-500">{t('history.recent_data')}</span>
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {history.map((item, index) => {
-                      const versionTitle = `Version ${index + 1}`;
+                      const versionTitle = `${t('history.version')} ${index + 1}`;
                       const formattedDate = formatHistoryDate(item.historical_date);
-                      const displayDate = formattedDate ?? 'Date not available';
+                      const displayDate = formattedDate ?? t('history.date_not_available');
                       const isSelected = selectedHistoryId === item.historical_id;
 
                       return (
