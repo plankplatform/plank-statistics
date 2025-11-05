@@ -3,7 +3,7 @@ import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
 import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
 import { ChartModel } from 'ag-grid-community';
-import StatChartHeader from './StatChartHeader';
+import StatChartHeader, { StatHistoryItem } from './StatChartHeader';
 import { apiFetch } from '@/lib/api';
 import { invalidateStarredGraphs } from '@/lib/starredGraphsStore';
 
@@ -20,6 +20,13 @@ interface StatChartsProps {
   isStarred: boolean;
   openTable: boolean;
   statId: number | string;
+}
+
+interface HistoryOverride {
+  id: number;
+  columns: string[];
+  rows: Record<string, any>[];
+  label: string;
 }
 
 const StatChart = ({
@@ -47,6 +54,7 @@ const StatChart = ({
   const [currentFilters, setCurrentFilters] = useState(filters);
   const [currentSorting, setCurrentSorting] = useState(sorting);
   const [isStarred, setIsStarred] = useState(isStarredProp);
+  const [historyOverride, setHistoryOverride] = useState<HistoryOverride | null>(null);  // dove salvo i cambiamenti da applicare
 
   const toggleStar = async () => {
     const newValue = !isStarred;
@@ -74,6 +82,7 @@ const StatChart = ({
   useEffect(() => setCurrentModel(model), [model]);
   useEffect(() => setCurrentFilters(filters), [filters]);
   useEffect(() => setCurrentSorting(sorting), [sorting]);
+  useEffect(() => setHistoryOverride(null), [statId]);
 
   const castNumericValues = (rows: Record<string, any>[], cols: string[]) =>
     rows.map((row) => {
@@ -85,7 +94,85 @@ const StatChart = ({
       return newRow;
     });
 
-  const castedData = useMemo(() => castNumericValues(data, columns), [data, columns]);
+  // Valori effettivi usati per righe e colonne (con o senza override)
+  const effectiveColumns = historyOverride?.columns ?? columns;
+  const effectiveRows = historyOverride?.rows ?? data;
+
+  const castedData = useMemo(
+    () => castNumericValues(effectiveRows, effectiveColumns),
+    [effectiveRows, effectiveColumns]
+  );
+
+  const parseColumnsOrder = (value: unknown, fallback: string[]): string[] => {
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string'); //Typescript style per controllo sui tipi
+    }
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((item): item is string => typeof item === 'string');
+        }
+      } catch (err) {
+        console.error('Unable to parse columns_order from history item:', err);
+      }
+    }
+    return fallback;
+  };
+
+  const parseJsonRows = (value: unknown): Record<string, any>[] => {
+    if (Array.isArray(value)) {
+      return value.filter(
+        (row): row is Record<string, any> => typeof row === 'object' && row !== null
+      );
+    }
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            (row): row is Record<string, any> => typeof row === 'object' && row !== null
+          );
+        }
+      } catch (err) {
+        console.error('Unable to parse json_results from history item:', err);
+      }
+    }
+    return [];
+  };
+
+  const handleHistorySelect = (item: StatHistoryItem, { label }: { index: number; label: string }) => {
+    const parsedColumns = parseColumnsOrder(item.columns_order, columns);
+    const parsedRows = parseJsonRows(item.json_results);
+
+    setHistoryOverride({
+      id: item.historical_id,
+      columns: parsedColumns.length ? parsedColumns : columns,
+      rows: parsedRows,
+      label,
+    });
+  };
+
+  const handleHistoryReset = () => {
+    setHistoryOverride(null);
+  };
+
+  // Ag Grid
+  const colDefs = useMemo<ColDef[]>(() => {
+    return effectiveColumns.map((col) => {
+      const firstValue = castedData.find(
+        (row) => row[col] !== undefined && row[col] !== null
+      )?.[col];
+      const isNumeric = typeof firstValue === 'number';
+
+      return {
+        field: col,
+        filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
+        type: isNumeric ? 'numericColumn' : undefined,
+        chartDataType: isNumeric ? 'series' : 'category',
+      } as ColDef;
+    });
+  }, [effectiveColumns, castedData]);
 
   const handleSave = async () => {
     const api = gridRef.current?.api;
@@ -129,18 +216,6 @@ const StatChart = ({
       alert('Errore durante il salvataggio');
     }
   };
-
-  const colDefs: ColDef[] = columns.map((col) => {
-    const firstValue = castedData.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
-    const isNumeric = typeof firstValue === 'number';
-
-    return {
-      field: col,
-      filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
-      type: isNumeric ? 'numericColumn' : undefined,
-      chartDataType: isNumeric ? 'series' : 'category',
-    };
-  });
 
   const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
     const container = containerRef.current;
@@ -200,6 +275,10 @@ const StatChart = ({
         onToggleStar={toggleStar}
         openTable={openTable}
         statId={statId}
+        onHistorySelect={handleHistorySelect}
+        onHistoryReset={handleHistoryReset}
+        selectedHistoryId={historyOverride?.id ?? null}
+        selectedHistoryLabel={historyOverride?.label}
       />
 
       <div style={{ display: 'none' }}>
