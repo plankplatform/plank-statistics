@@ -46,11 +46,21 @@
     "back": "Back",
     "load_history": "Load history"
   },
-  "history":{
+  "history": {
     "chart_history": "Chart history",
     "loading": "Loading...",
     "error": "Error loading chart history",
     "no_chart": "No chart history available",
+    "current_version": "Current version",
+    "recent_data": "Most recent data",
+    "date_not_available": "Date not available",
+    "version": "Version"
+  },
+  "history_table":{
+    "table_history": "Table history",
+    "loading": "Loading...",
+    "error": "Error loading chart history",
+    "no_table": "No table history available",
     "current_version": "Current version",
     "recent_data": "Most recent data",
     "date_not_available": "Date not available",
