@@ -6,6 +6,7 @@ import { ChartModel } from 'ag-grid-community';
 import StatChartHeader, { StatHistoryItem } from './StatChartHeader';
 import { apiFetch } from '@/lib/api';
 import { invalidateStarredGraphs } from '@/lib/starredGraphsStore';
+import { parseColumnsOrder, parseJsonRows } from '@/lib/utils';
 
 interface StatChartsProps {
   model: ChartModel;
@@ -102,44 +103,6 @@ const StatChart = ({
     () => castNumericValues(effectiveRows, effectiveColumns),
     [effectiveRows, effectiveColumns]
   );
-
-  const parseColumnsOrder = (value: unknown, fallback: string[]): string[] => {
-    if (Array.isArray(value)) {
-      return value.filter((item): item is string => typeof item === 'string'); //Typescript style per controllo sui tipi
-    }
-    if (typeof value === 'string') {
-      try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) {
-          return parsed.filter((item): item is string => typeof item === 'string');
-        }
-      } catch (err) {
-        console.error('Unable to parse columns_order from history item:', err);
-      }
-    }
-    return fallback;
-  };
-
-  const parseJsonRows = (value: unknown): Record<string, any>[] => {
-    if (Array.isArray(value)) {
-      return value.filter(
-        (row): row is Record<string, any> => typeof row === 'object' && row !== null
-      );
-    }
-    if (typeof value === 'string') {
-      try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(
-            (row): row is Record<string, any> => typeof row === 'object' && row !== null
-          );
-        }
-      } catch (err) {
-        console.error('Unable to parse json_results from history item:', err);
-      }
-    }
-    return [];
-  };
 
   const handleHistorySelect = (item: StatHistoryItem, { label }: { index: number; label: string }) => {
     const parsedColumns = parseColumnsOrder(item.columns_order, columns);

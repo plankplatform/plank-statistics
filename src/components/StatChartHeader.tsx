@@ -4,6 +4,8 @@ import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { Save, Star, SquareArrowOutUpRight, X, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { apiFetch } from '@/lib/api';
+import { formatHistoryDate } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -12,7 +14,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { apiFetch } from '@/lib/api';
 
 export interface StatHistoryItem {
   historical_id: number;
@@ -108,14 +109,6 @@ const StatChartHeader = ({
         }
       };
 
-      // Formatta la data in DD/MM/YYYY hh:mm
-      const formatHistoryDate = (value?: string | null) => {
-        if (!value) return null;
-        const parsed = new Date(value);
-        if (Number.isNaN(parsed.getTime())) return null; //getTime ritorna NaN se parsed==invalid date
-        return parsed.toLocaleString('it-IT');
-      };
-
       return (
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <div onDoubleClick={() => setEditing(true)} className="flex-1 cursor-text">
@@ -169,7 +162,7 @@ const StatChartHeader = ({
 
             <DropdownMenu onOpenChange={handleHistoryLoad}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-8 h-8">
+                <Button variant="ghost" size="icon" className="w-8 h-8" title='Chart history'>
                   <Clock className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
