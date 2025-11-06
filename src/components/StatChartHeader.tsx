@@ -160,6 +160,7 @@ const StatChartHeader = ({
               </span>
             ) : null}
 
+            {/* --HISTORY-- */}
             <DropdownMenu onOpenChange={handleHistoryLoad}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="w-8 h-8" title='Chart history'>
@@ -217,10 +218,12 @@ const StatChartHeader = ({
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* --SAVE-- */}
             <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave}>
               <Save className="w-4 h-4" />
             </Button>
-
+            
+            {/* --PREFERITO-- */}
             <Button
               variant="ghost"
               size="icon"
@@ -235,6 +238,7 @@ const StatChartHeader = ({
               )}
             </Button>
 
+            {/* --LINK TABELLA-GRAFICO-- */}
             {openTable ? (
               <Link to={`/stat/${statId}`}>
                 <Button variant="ghost" size="icon" className="w-8 h-8">
@@ -243,6 +247,7 @@ const StatChartHeader = ({
               </Link>
             ) : null}
 
+            {/* --ELIMINA-- */}
             <Dialog open={showDialog} onOpenChange={setShowDialog}>
               <DialogTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-lg w-8 h-8">
