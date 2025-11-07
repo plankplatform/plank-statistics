@@ -3,9 +3,10 @@ import { AgGridReact as AgGrid } from 'ag-grid-react';
 import type { AgGridReact } from 'ag-grid-react';
 import type { ColDef, FirstDataRenderedEvent } from 'ag-grid-community';
 import { ChartModel } from 'ag-grid-community';
-import StatChartHeader from './StatChartHeader';
+import StatChartHeader, { StatHistoryItem } from './StatChartHeader';
 import { apiFetch } from '@/lib/api';
 import { invalidateStarredGraphs } from '@/lib/starredGraphsStore';
+import { parseColumnsOrder, parseJsonRows, castNumericValues } from '@/lib/utils';
 
 interface StatChartsProps {
   model: ChartModel;
@@ -20,6 +21,13 @@ interface StatChartsProps {
   isStarred: boolean;
   openTable: boolean;
   statId: number | string;
+}
+
+interface HistoryOverride {
+  id: number;
+  columns: string[];
+  rows: Record<string, any>[];
+  label: string;
 }
 
 const StatChart = ({
@@ -47,6 +55,7 @@ const StatChart = ({
   const [currentFilters, setCurrentFilters] = useState(filters);
   const [currentSorting, setCurrentSorting] = useState(sorting);
   const [isStarred, setIsStarred] = useState(isStarredProp);
+  const [historyOverride, setHistoryOverride] = useState<HistoryOverride | null>(null);  // dove salvo i cambiamenti da applicare
 
   const toggleStar = async () => {
     const newValue = !isStarred;
@@ -74,18 +83,58 @@ const StatChart = ({
   useEffect(() => setCurrentModel(model), [model]);
   useEffect(() => setCurrentFilters(filters), [filters]);
   useEffect(() => setCurrentSorting(sorting), [sorting]);
+  useEffect(() => setHistoryOverride(null), [statId]);
 
-  const castNumericValues = (rows: Record<string, any>[], cols: string[]) =>
-    rows.map((row) => {
-      const newRow: Record<string, any> = {};
-      for (const key of cols) {
-        const val = row[key];
-        newRow[key] = !isNaN(val) && val !== '' && val !== null ? Number(val) : val;
-      }
-      return newRow;
+  /*
+    FLOW CREAZIONE GRAFICO (meccanismo simile per le tabelle)
+    - Prendo le colonne da columns e le righe da json
+    - Converto le colonne in un array di stringhe
+    - Il json mi da i dati sotto forma di stringhe -> converto in array di oggetti {nome:stringa, valore:stringa}
+    - Scorro ogni riga (e colonna) per convertire le stringhe numeriche 'valore' in number
+    - Passo ad AG Grid
+  */
+
+  // Valori effettivi usati per righe e colonne (con o senza override)
+  const effectiveColumns = historyOverride?.columns ?? columns;
+  const effectiveRows = historyOverride?.rows ?? data;
+
+  const castedData = useMemo(
+    () => castNumericValues( effectiveColumns, effectiveRows),
+    [effectiveRows, effectiveColumns]
+  );
+
+  const handleHistorySelect = (item: StatHistoryItem, { label }: { index: number; label: string }) => {
+    const parsedColumns = parseColumnsOrder(item.columns_order, columns);
+    const parsedRows = parseJsonRows(item.json_results);
+
+    setHistoryOverride({
+      id: item.historical_id,
+      columns: parsedColumns.length ? parsedColumns : columns,
+      rows: parsedRows,
+      label,
     });
+  };
 
-  const castedData = useMemo(() => castNumericValues(data, columns), [data, columns]);
+  const handleHistoryReset = () => {
+    setHistoryOverride(null);
+  };
+
+  // Ag Grid
+  const colDefs = useMemo<ColDef[]>(() => {
+    return effectiveColumns.map((col) => {
+      const firstValue = castedData.find(
+        (row) => row[col] !== undefined && row[col] !== null
+      )?.[col];
+      const isNumeric = typeof firstValue === 'number';
+
+      return {
+        field: col,
+        filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
+        type: isNumeric ? 'numericColumn' : undefined,
+        chartDataType: isNumeric ? 'series' : 'category',
+      } as ColDef;
+    });
+  }, [effectiveColumns, castedData]);
 
   const handleSave = async () => {
     const api = gridRef.current?.api;
@@ -129,18 +178,6 @@ const StatChart = ({
       alert('Errore durante il salvataggio');
     }
   };
-
-  const colDefs: ColDef[] = columns.map((col) => {
-    const firstValue = castedData.find((row) => row[col] !== undefined && row[col] !== null)?.[col];
-    const isNumeric = typeof firstValue === 'number';
-
-    return {
-      field: col,
-      filter: isNumeric ? 'agNumberColumnFilter' : 'agTextColumnFilter',
-      type: isNumeric ? 'numericColumn' : undefined,
-      chartDataType: isNumeric ? 'series' : 'category',
-    };
-  });
 
   const handleFirstDataRendered = (event: FirstDataRenderedEvent) => {
     const container = containerRef.current;
@@ -200,6 +237,10 @@ const StatChart = ({
         onToggleStar={toggleStar}
         openTable={openTable}
         statId={statId}
+        onHistorySelect={handleHistorySelect}
+        onHistoryReset={handleHistoryReset}
+        selectedHistoryId={historyOverride?.id ?? null}
+        selectedHistoryLabel={historyOverride?.label}
       />
 
       <div style={{ display: 'none' }}>

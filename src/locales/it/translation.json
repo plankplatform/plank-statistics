@@ -2,7 +2,8 @@
   "stats": {
     "empty": "Non sono presenti statistiche.",
     "show_menu": "Mostra menu",
-    "hide_menu": "Nascondi menu"
+    "hide_menu": "Nascondi menu",
+    "no_data": "Statistica non trovata"
   },
   "chart": {
     "empty_state": "Non ci sono grafici salvati per questa statistica.",
@@ -21,7 +22,8 @@
     "save_chart": "Salva grafico",
     "cancel": "Annulla",
     "delete": "Elimina",
-    "save": "Salva"
+    "save": "Salva",
+    "favorite": "Aggiungi ai preferiti"
   },
   "label": {
     "last_update": "Ultimo aggiornamento:",
@@ -42,6 +44,27 @@
   "tooltip": {
     "save_table": "Salva la tabella",
     "reset_table": "Ripristina stato iniziale",
-    "back": "Indietro"
+    "back": "Indietro",
+    "load_history": "Carica storico"
+  },
+  "history":{
+    "chart_history": "Storico grafico",
+    "loading": "Caricamento...",
+    "error": "Errore nel caricamento dello storico grafici",
+    "no_chart": "Storico grafico non disponibile",
+    "current_version": "Versione attuale",
+    "recent_data": "Data più recente",
+    "date_not_available": "Data non disponibile",
+    "version": "Versione"
+  },
+  "history_table":{
+    "table_history": "Storico tabelle",
+    "loading": "Caricamento...",
+    "error": "Errore nel caricamento dello storico tabelle",
+    "no_table": "Storico tabella non disponibile",
+    "current_version": "Versione attuale",
+    "recent_data": "Data più recente",
+    "date_not_available": "Data non disponibile",
+    "version": "Versione"
   }
 }
