@@ -28,4 +28,4 @@ dist-ssr
 .env.development
 
 # Files for testing and notes
-temp.tsx
+temp

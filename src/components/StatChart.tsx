@@ -6,7 +6,7 @@ import { ChartModel } from 'ag-grid-community';
 import StatChartHeader, { StatHistoryItem } from './StatChartHeader';
 import { apiFetch } from '@/lib/api';
 import { invalidateStarredGraphs } from '@/lib/starredGraphsStore';
-import { parseColumnsOrder, parseJsonRows } from '@/lib/utils';
+import { parseColumnsOrder, parseJsonRows, castNumericValues } from '@/lib/utils';
 
 interface StatChartsProps {
   model: ChartModel;
@@ -85,22 +85,21 @@ const StatChart = ({
   useEffect(() => setCurrentSorting(sorting), [sorting]);
   useEffect(() => setHistoryOverride(null), [statId]);
 
-  const castNumericValues = (rows: Record<string, any>[], cols: string[]) =>
-    rows.map((row) => {
-      const newRow: Record<string, any> = {};
-      for (const key of cols) {
-        const val = row[key];
-        newRow[key] = !isNaN(val) && val !== '' && val !== null ? Number(val) : val;
-      }
-      return newRow;
-    });
+  /*
+    FLOW CREAZIONE GRAFICO (meccanismo simile per le tabelle)
+    - Prendo le colonne da columns e le righe da json
+    - Converto le colonne in un array di stringhe
+    - Il json mi da i dati sotto forma di stringhe -> converto in array di oggetti {nome:stringa, valore:stringa}
+    - Scorro ogni riga (e colonna) per convertire le stringhe numeriche 'valore' in number
+    - Passo ad AG Grid
+  */
 
   // Valori effettivi usati per righe e colonne (con o senza override)
   const effectiveColumns = historyOverride?.columns ?? columns;
   const effectiveRows = historyOverride?.rows ?? data;
 
   const castedData = useMemo(
-    () => castNumericValues(effectiveRows, effectiveColumns),
+    () => castNumericValues( effectiveColumns, effectiveRows),
     [effectiveRows, effectiveColumns]
   );
 

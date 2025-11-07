@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import type { ChartModel } from 'ag-grid-community';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -43,7 +44,6 @@ export function parseColumnsOrder(value: unknown, fallback: string[]): string[] 
   return fallback;
 }
 
-
 /**
  * Parsing in un array di entry (stringa-valore) relativi alle righe json
  * 
@@ -66,4 +66,58 @@ export function parseJsonRows(value: unknown): Record<string, any>[] {
   }
 
   return [];
+}
+
+/**
+ * Converte in numeri i valori della colonna, ignorando valori non number
+ * 
+ * @param columns Elenco delle colonne
+ * @param rows Elenco con i dati da modificare
+ * @returns Array di righe con i valori numerici convertiti
+ */
+export function castNumericValues(columns: string[], rows: Record<string, any>[]) {
+  return rows.map((row) => {
+    const newRow = { ...row };
+    columns.forEach((col) => {
+      const val = row[col];
+      if (val !== null && val !== '' && !isNaN(val)) {
+        newRow[col] = Number(val);
+      }
+    });
+
+    return newRow;
+  });
+}
+
+/**
+ * Normalizza la configurazione di un modello grafico Ag Grid
+ * 
+ * @param model Modello del grafico da normalizzare
+ * @returns Modello normalizzato
+ */
+export function normalizeChartOptions(model: ChartModel): ChartModel {
+  if (Array.isArray(model.chartOptions)) {
+    model.chartOptions = {};
+  }
+
+  return model;
+}
+
+/**
+ * Crea copia (deep) di un JSON
+ * 
+ * @param value valore da clonare (json)
+ * @returns nuova istanza copia esatta di value
+ */
+export function deepClone<T>(value: T): T {
+  if (value === undefined || value === null) {
+    return value;
+  }
+
+  try {
+    return JSON.parse(JSON.stringify(value)) as T;
+  } catch (error) {
+    console.error("Errore durante la copia", error)
+    return value;
+  }
 }
