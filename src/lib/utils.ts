@@ -121,3 +121,13 @@ export function deepClone<T>(value: T): T {
     return value;
   }
 }
+
+/**
+ * Normalizza la stringa corrispondente al titolo della colonna: primo carattere maiuscolo e rimozione di _/-
+ * @param text Titolo della colonna
+ * @returns Titolo della colonna normalizzato
+ */
+export function normalizeCol(text: string): string {
+  const cleaned = text.replace(/[_-]/g, " ");
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}

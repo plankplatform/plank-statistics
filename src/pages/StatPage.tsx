@@ -22,7 +22,8 @@ import {
   normalizeChartOptions, 
   deepClone, 
   parseColumnsOrder, 
-  parseJsonRows } from '@/lib/utils';
+  parseJsonRows,
+  normalizeCol} from '@/lib/utils';
 
 const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
@@ -499,7 +500,7 @@ const StatPage = () => {
       return {
         colId: col,
         field: col,
-        headerName: col,
+        headerName: normalizeCol(col),
         filter,
         sortable: true,
         type,
