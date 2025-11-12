@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { ModuleRegistry } from 'ag-grid-community';
 import { AllEnterpriseModule, IntegratedChartsModule } from 'ag-grid-enterprise';
@@ -16,6 +16,14 @@ import type { MenuItemDef } from 'ag-grid-community';
 import ReactDOMServer from 'react-dom/server';
 import { Save } from 'lucide-react';
 import { set } from 'date-fns';
+import type { StatHistoryItem } from '../components/StatChartHeader';
+import { 
+  castNumericValues, 
+  normalizeChartOptions, 
+  deepClone, 
+  parseColumnsOrder, 
+  parseJsonRows, 
+  normalizeCol} from '@/lib/utils';
 
 const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
@@ -24,25 +32,51 @@ ModuleRegistry.registerModules([
   IntegratedChartsModule.with(AgChartsEnterpriseModule),
 ]);
 
-function castNumericValues(columns: string[], rows: Record<string, any>[]) {
-  return rows.map((row) => {
-    const newRow = { ...row };
-    columns.forEach((col) => {
-      const val = row[col];
-      if (val !== null && val !== '' && !isNaN(val)) {
-        newRow[col] = Number(val);
-      }
-    });
-    return newRow;
-  });
+
+interface TableGridStateSnapshot {
+  filters: Record<string, any>;
+  columnState: any[];
+  pivotMode: boolean;
+  rowGroupCols: string[];
+  pivotCols: string[];
+  valueCols: string[];
 }
 
-function normalizeChartOptions(model: ChartModel): ChartModel {
-  if (Array.isArray(model.chartOptions)) {
-    model.chartOptions = {};
+// Ricostruisce lo stato della griglia ritornado uno "screen" della struttura
+const parseGridState = (value: unknown): TableGridStateSnapshot | null => {
+  if (!value) return null;
+
+  let parsed = value;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch (err) {
+      console.error('Unable to parse grid state from history item:', err);
+      return null;
+    }
   }
-  return model;
-}
+
+  if (typeof parsed !== 'object' || parsed === null) {
+    return null;
+  }
+
+  const raw = parsed as Record<string, any>;
+
+  return {
+    filters: raw.filters && typeof raw.filters === 'object' ? deepClone(raw.filters) : {},
+    columnState: Array.isArray(raw.columnState) ? deepClone(raw.columnState) : [],
+    pivotMode: !!raw.pivotMode,
+    rowGroupCols: Array.isArray(raw.rowGroupCols)
+      ? raw.rowGroupCols.filter((col: unknown): col is string => typeof col === 'string')
+      : [],
+    pivotCols: Array.isArray(raw.pivotCols)
+      ? raw.pivotCols.filter((col: unknown): col is string => typeof col === 'string')
+      : [],
+    valueCols: Array.isArray(raw.valueCols)
+      ? raw.valueCols.filter((col: unknown): col is string => typeof col === 'string')
+      : [],
+  };
+};
 
 async function createStatGraph(payload: CreateStatGraphPayload): Promise<{ id: number }> {
   return apiFetch('v1/stats/graphs', {
@@ -68,6 +102,12 @@ interface StatData {
   lastexec_time: string;
 }
 
+interface TableHistoryOverride {
+  id: number;
+  columns: string[];
+  rows: Record<string, any>[];
+}
+
 const StatPage = () => {
   const { t } = useTranslation();
   const params = useParams();
@@ -86,7 +126,7 @@ const StatPage = () => {
   const [savedGraphsCache, setSavedGraphsCache] = useState<Record<number | string, any[]>>({});
   const [graphsLoading, setGraphsLoading] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
-  const tableFiltersRef = useRef({});
+  const tableFiltersRef = useRef<Record<string, any>>({});
   const [tableColumnState, setTableColumnState] = useState<any[]>([]);
   const [gridIsReady, setGridIsReady] = useState(false);
   const [pivotMode, setPivotMode] = useState(false);
@@ -95,9 +135,168 @@ const StatPage = () => {
   const [valueCols, setValueCols] = useState<string[]>([]);
   const [justSaved, setJustSaved] = useState(false);
 
+  // New: variabili relative allo storico tabella
+  const [tableHistory, setTableHistory] = useState<StatHistoryItem[]>([]);
+  const [tableHistoryLoaded, setTableHistoryLoaded] = useState(false);
+  const [tableHistoryLoading, setTableHistoryLoading] = useState(false);
+  const [tableHistoryError, setTableHistoryError] = useState<string | null>(null);
+  const [selectedTableHistoryId, setSelectedTableHistoryId] = useState<number | null>(null);
+  const [selectedTableHistoryLabel, setSelectedTableHistoryLabel] = useState<string | undefined>();
+  const [tableOverride, setTableOverride] = useState<TableHistoryOverride | null>(null);
+  const tableHistoryPreviousStateRef = useRef<TableGridStateSnapshot | null>(null);
+
+  // Inizializza griglia Ag Grid al caricamento o se cambiano i dati [data,pivotMode,...]
+  const applyInitialGridState = useCallback(() => {
+    const api = gridRef.current?.api;
+    if (!api || !data) return;
+
+    const hasSavedState =
+      (tableColumnState?.length ?? 0) > 0 ||
+      rowGroupCols.length > 0 ||
+      pivotCols.length > 0 ||
+      valueCols.length > 0 ||
+      (tableFiltersRef.current && Object.keys(tableFiltersRef.current).length > 0) ||
+      pivotMode;
+
+    // Verifico se effettivamente c'è uno stato da salvare
+    if (hasSavedState) {
+      if (tableFiltersRef.current && Object.keys(tableFiltersRef.current).length > 0) {
+        api.setFilterModel(tableFiltersRef.current);
+      } else {
+        api.setFilterModel(null);
+      }
+
+      api.setRowGroupColumns(rowGroupCols);
+      api.setPivotColumns(pivotCols);
+      api.setValueColumns(valueCols);
+
+      // Evito se non ci sono elementi
+      if (tableColumnState?.length) {
+        api.applyColumnState({
+          state: tableColumnState,
+          applyOrder: true,
+        });
+      }
+    } else {
+      // No stato -> griglia ripulita
+      api.setFilterModel(null);
+      api.setRowGroupColumns([]);
+      api.setPivotColumns([]);
+      api.setValueColumns([]);
+      api.sizeColumnsToFit();
+    }
+
+    setGridIsReady(true);
+  }, [data, pivotMode, tableColumnState, rowGroupCols, pivotCols, valueCols]);
+
+  // Stessa logica di handleHistoryLoad in StatChartHeader
+  const handleTableHistoryLoad = async (open: boolean) => {
+    if (!open || tableHistoryLoaded || tableHistoryLoading || Number.isNaN(statId)) return;
+
+    setTableHistoryLoading(true);
+    setTableHistoryError(null);
+
+    try {
+      const response = await apiFetch<StatHistoryItem[]>(`v1/stats/${statId}/history`);
+      setTableHistory(Array.isArray(response) ? response : []);
+      setTableHistoryLoaded(true);
+    } catch (error) {
+      console.error('Error while fetching table history:', error);
+      if (error instanceof Error && error.message.includes('404')) {
+        setTableHistory([]);
+        setTableHistoryLoaded(true);
+      } else {
+        setTableHistoryError(t('history.error'));
+      }
+    } finally {
+      setTableHistoryLoading(false);
+    }
+  };
+
+  // Gestione selezione della versione della tabella (logica simile a handleHistoryLoad ↑)
+  const handleTableHistorySelect = ( item: StatHistoryItem, { label }: { index: number; label: string }) => {
+    if (!data) return;
+
+    // Salvo lo stato della tabella se nessuna versione/stato è stato selezionato
+    if (selectedTableHistoryId === null && !tableHistoryPreviousStateRef.current) {
+      tableHistoryPreviousStateRef.current = {
+        filters: deepClone(tableFiltersRef.current) ?? {},
+        columnState: deepClone(tableColumnState) ?? [],
+        pivotMode,
+        rowGroupCols: [...rowGroupCols],
+        pivotCols: [...pivotCols],
+        valueCols: [...valueCols],
+      };
+    }
+
+    const fallbackColumns = data.columns;
+    const parsedColumns = parseColumnsOrder(item.columns_order, fallbackColumns);
+    const effectiveColumns = parsedColumns.length ? parsedColumns : fallbackColumns;
+    const parsedRows = parseJsonRows(item.json_results);
+    const castedRows = castNumericValues(effectiveColumns, parsedRows);
+
+    const parsedGridState = parseGridState(item.grid_state);
+
+    tableFiltersRef.current = parsedGridState?.filters ?? {};
+    setTableColumnState(parsedGridState?.columnState ?? []);
+    setPivotMode(parsedGridState?.pivotMode ?? false);
+    setRowGroupCols(parsedGridState?.rowGroupCols ?? []);
+    setPivotCols(parsedGridState?.pivotCols ?? []);
+    setValueCols(parsedGridState?.valueCols ?? []);
+
+    setSelectedTableHistoryId(item.historical_id);
+    setSelectedTableHistoryLabel(label);
+    setTableOverride({
+      id: item.historical_id,
+      columns: effectiveColumns,
+      rows: castedRows,
+    });
+
+    setTimeout(() => {
+      if (gridIsReady) {
+        applyInitialGridState();
+      }
+    }, 0);
+  };
+
+  // Ricarica la versione principale 
+  const handleTableHistoryReset = () => {
+    if (!data) return;
+
+    const snapshot = tableHistoryPreviousStateRef.current;
+
+    setTableOverride(null);
+    setSelectedTableHistoryId(null);
+    setSelectedTableHistoryLabel(undefined);
+
+    if (snapshot) {
+      tableFiltersRef.current = deepClone(snapshot.filters) ?? {};
+      setTableColumnState(deepClone(snapshot.columnState) ?? []);
+      setPivotMode(snapshot.pivotMode);
+      setRowGroupCols([...snapshot.rowGroupCols]);
+      setPivotCols([...snapshot.pivotCols]);
+      setValueCols([...snapshot.valueCols]);
+    } else {
+      tableFiltersRef.current = {};
+      setTableColumnState([]);
+      setPivotMode(false);
+      setRowGroupCols([]);
+      setPivotCols([]);
+      setValueCols([]);
+    }
+
+    tableHistoryPreviousStateRef.current = null;
+
+    setTimeout(() => {
+      if (gridIsReady) {
+        applyInitialGridState();
+      }
+    }, 0);
+  };
+
   const handleSaveGridState = async () => {
     const api = gridRef.current?.api;
-    if (!api) return;
+    if (!api || !data) return;
 
     const grid_state = {
       filters: api.getFilterModel(),
@@ -109,7 +308,7 @@ const StatPage = () => {
     };
 
     try {
-      await apiFetch(`v1/stats/${data?.id}`, {
+      await apiFetch(`v1/stats/${data.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ grid_state }),
       });
@@ -148,11 +347,10 @@ const StatPage = () => {
   };
 
   const onReset = () => {
-    if (!gridRef.current?.api || !gridRef.current?.api) return;
+    if (!gridRef.current?.api) return;
 
     gridRef.current.api.setFilterModel(null);
     gridRef.current.api.resetColumnState();
-    //gridRef.current.api.autoSizeAllColumns();
     gridRef.current.api.sizeColumnsToFit();
     gridRef.current.api.setRowGroupColumns([]);
     gridRef.current.api.setPivotColumns([]);
@@ -164,39 +362,28 @@ const StatPage = () => {
     setRowGroupCols([]);
     setPivotCols([]);
     setValueCols([]);
+    tableHistoryPreviousStateRef.current = null;
+    setSelectedTableHistoryId(null);
+    setSelectedTableHistoryLabel(undefined);
+    setTableOverride(null);
   };
 
+  // Manca setGridIsReady(true) -> ora aggiunto TESTARE
   const handleGridReady = () => {
     applyInitialGridState();
     setGridIsReady(true);
   };
 
-const applyInitialGridState = async () => {
-  if (!gridRef.current?.api || !data) return;
-
-  const api = gridRef.current.api;
-
-  if (
-    tableColumnState?.length > 0 ||
-    pivotCols.length ||
-    rowGroupCols.length ||
-    valueCols.length
-  ) {
-    api.setFilterModel(tableFiltersRef.current);
-    api.setRowGroupColumns(rowGroupCols);
-    api.setPivotColumns(pivotCols);
-    api.setValueColumns(valueCols);
-
-    api.applyColumnState({
-      state: tableColumnState,
-      applyOrder: true,
-    });
-  } else {
-    api.sizeColumnsToFit();
-  }
-
-  setGridIsReady(true);
-};
+  useEffect(() => {
+    setTableHistory([]);
+    setTableHistoryLoaded(false);
+    setTableHistoryLoading(false);
+    setTableHistoryError(null);
+    setSelectedTableHistoryId(null);
+    setSelectedTableHistoryLabel(undefined);
+    setTableOverride(null);
+    tableHistoryPreviousStateRef.current = null;
+  }, [statId]);
 
   useEffect(() => {
     if (isNaN(statId)) return;
@@ -218,7 +405,7 @@ const applyInitialGridState = async () => {
           lastexec_time: raw.lastexec_time,
         });
 
-        const parsedGridState = raw.grid_state ? JSON.parse(raw.grid_state) : null;
+        const parsedGridState = parseGridState(raw.grid_state);
 
         tableFiltersRef.current = parsedGridState?.filters ?? {};
         setTableColumnState(parsedGridState?.columnState ?? []);
@@ -226,6 +413,8 @@ const applyInitialGridState = async () => {
         setRowGroupCols(parsedGridState?.rowGroupCols ?? []);
         setPivotCols(parsedGridState?.pivotCols ?? []);
         setValueCols(parsedGridState?.valueCols ?? []);
+
+        tableHistoryPreviousStateRef.current = null;
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -259,16 +448,21 @@ const applyInitialGridState = async () => {
       })
       .catch(console.error)
       .finally(() => setGraphsLoading(false));
-  }, [view, data]);
+  }, [view, data, savedGraphsCache]);
+
+  const effectiveRows = tableOverride?.rows ?? data?.rows ?? [];
 
   const columnDefs = useMemo(() => {
     if (!data) return [];
-    return data.columns.map((col) => {
-      const values = data.rows.map((row) => row[col]);
+    const columnsSource = tableOverride?.columns ?? data.columns;
+    const rowsSource = tableOverride?.rows ?? data.rows;
+
+    return columnsSource.map((col) => {
+      const values = rowsSource.map((row) => row[col]);
 
       const isNumeric = values.every((val) => typeof val === 'number');
       const isDate = values.every(
-        (val) => typeof val === 'string' && !isNaN(Date.parse(val))
+        (val) => typeof val === 'string' && !Number.isNaN(Date.parse(val))
       );
 
       let filter: any;
@@ -306,6 +500,7 @@ const applyInitialGridState = async () => {
       return {
         colId: col,
         field: col,
+        headerName: normalizeCol(col),
         filter,
         sortable: true,
         type,
@@ -315,10 +510,10 @@ const applyInitialGridState = async () => {
         enableValue: true,
       };
     });
-  }, [data]);
+  }, [data, tableOverride]);
 
   if (loading) return <Loader />;
-  if (!data) return <p className="text-center text-gray-600 mt-12">Statistica non trovata</p>;
+  if (!data) return <p className="text-center text-gray-600 mt-12">{t('stats.no_data')}</p>;
 
   const getCustomChartMenuItems = (params: any): (string | MenuItemDef)[] => {
     const defaultItems = params.defaultItems;
@@ -394,13 +589,27 @@ const applyInitialGridState = async () => {
         justSaved={justSaved}
         onDownloadCsv={onDownloadCsv}
         onDownloadExcel={onDownloadExcel}
+        tableHistory={
+          data
+            ? {
+                items: tableHistory,
+                loading: tableHistoryLoading,
+                error: tableHistoryError,
+                onOpenChange: handleTableHistoryLoad,
+                onSelect: handleTableHistorySelect,
+                onReset: handleTableHistoryReset,
+                selectedId: selectedTableHistoryId,
+                selectedLabel: selectedTableHistoryLabel,
+              }
+            : undefined
+        }
       />
 
       <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>
         <StatTable
           key={gridIsReady ? 'ready' : 'waiting'}
           gridRef={gridRef}
-          rowData={data.rows}
+          rowData={effectiveRows}
           columnDefs={columnDefs}
           setHasChart={setHasChart}
           chartMenuItems={getCustomChartMenuItems}
