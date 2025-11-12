@@ -17,13 +17,14 @@ import ReactDOMServer from 'react-dom/server';
 import { Save } from 'lucide-react';
 import { set } from 'date-fns';
 import type { StatHistoryItem } from '../components/StatChartHeader';
-import { 
-  castNumericValues, 
-  normalizeChartOptions, 
-  deepClone, 
-  parseColumnsOrder, 
+import {
+  castNumericValues,
+  normalizeChartOptions,
+  deepClone,
+  parseColumnsOrder,
   parseJsonRows,
-  normalizeCol} from '@/lib/utils';
+  normalizeCol,
+} from '@/lib/utils';
 
 const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
@@ -31,7 +32,6 @@ ModuleRegistry.registerModules([
   AllEnterpriseModule,
   IntegratedChartsModule.with(AgChartsEnterpriseModule),
 ]);
-
 
 interface TableGridStateSnapshot {
   filters: Record<string, any>;
@@ -214,7 +214,10 @@ const StatPage = () => {
   };
 
   // Gestione selezione della versione della tabella (logica simile a handleHistoryLoad ↑)
-  const handleTableHistorySelect = ( item: StatHistoryItem, { label }: { index: number; label: string }) => {
+  const handleTableHistorySelect = (
+    item: StatHistoryItem,
+    { label }: { index: number; label: string }
+  ) => {
     if (!data) return;
 
     // Salvo lo stato della tabella se nessuna versione/stato è stato selezionato
@@ -259,7 +262,7 @@ const StatPage = () => {
     }, 0);
   };
 
-  // Ricarica la versione principale 
+  // Ricarica la versione principale
   const handleTableHistoryReset = () => {
     if (!data) return;
 
