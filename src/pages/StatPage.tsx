@@ -25,6 +25,9 @@ import {
   parseJsonRows, 
   normalizeCol} from '@/lib/utils';
 
+import AccordionMenu from "@/components/AccordionMenu";
+
+
 const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
 ModuleRegistry.registerModules([
@@ -144,6 +147,10 @@ const StatPage = () => {
   const [selectedTableHistoryLabel, setSelectedTableHistoryLabel] = useState<string | undefined>();
   const [tableOverride, setTableOverride] = useState<TableHistoryOverride | null>(null);
   const tableHistoryPreviousStateRef = useRef<TableGridStateSnapshot | null>(null);
+
+  // Menu a tendina laterale
+  const [sidebarGroups, setSidebarGroups] = useState<{ group: string; stats: { id: number; title: string; description?: string }[] }[]>([]);
+  const [activeGroupFinal, setActiveGroupFinal] = useState<string | null>(null);
 
   // Inizializza griglia Ag Grid al caricamento o se cambiano i dati [data,pivotMode,...]
   const applyInitialGridState = useCallback(() => {
@@ -450,6 +457,29 @@ const StatPage = () => {
       .finally(() => setGraphsLoading(false));
   }, [view, data, savedGraphsCache]);
 
+  useEffect(() => {
+  apiFetch('v1/stats')
+    .then((raw) => {
+      const mapped = Object.entries(raw).map(([group, stats]: any) => ({
+        group,
+        stats: stats.map((s: any) => ({
+          id: Number(s.id),
+          title: s.title,
+          description: s.description,
+        })),
+      }));
+
+      setSidebarGroups(mapped);
+
+      for (const grp of mapped) {
+        if (grp.stats.some((s: { id: number | string }) => Number(s.id) === statId)) {
+          setActiveGroupFinal(grp.group);
+          break;
+        }
+      }
+    });
+}, [statId]);
+
   const effectiveRows = tableOverride?.rows ?? data?.rows ?? [];
 
   const columnDefs = useMemo(() => {
@@ -604,6 +634,10 @@ const StatPage = () => {
             : undefined
         }
       />
+
+      <div className="w-[250px] hidden md:block">
+        {activeGroupFinal && (<AccordionMenu items={sidebarGroups} activeGroup={activeGroupFinal} activeStatId={statId} />)}
+      </div>
 
       <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>
         <StatTable
