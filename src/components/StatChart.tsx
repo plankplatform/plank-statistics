@@ -55,7 +55,7 @@ const StatChart = ({
   const [currentFilters, setCurrentFilters] = useState(filters);
   const [currentSorting, setCurrentSorting] = useState(sorting);
   const [isStarred, setIsStarred] = useState(isStarredProp);
-  const [historyOverride, setHistoryOverride] = useState<HistoryOverride | null>(null);  // dove salvo i cambiamenti da applicare
+  const [historyOverride, setHistoryOverride] = useState<HistoryOverride | null>(null); // dove salvo i cambiamenti da applicare
 
   const toggleStar = async () => {
     const newValue = !isStarred;
@@ -99,11 +99,14 @@ const StatChart = ({
   const effectiveRows = historyOverride?.rows ?? data;
 
   const castedData = useMemo(
-    () => castNumericValues( effectiveColumns, effectiveRows),
+    () => castNumericValues(effectiveColumns, effectiveRows),
     [effectiveRows, effectiveColumns]
   );
 
-  const handleHistorySelect = (item: StatHistoryItem, { label }: { index: number; label: string }) => {
+  const handleHistorySelect = (
+    item: StatHistoryItem,
+    { label }: { index: number; label: string }
+  ) => {
     const parsedColumns = parseColumnsOrder(item.columns_order, columns);
     const parsedRows = parseJsonRows(item.json_results);
 
@@ -122,9 +125,9 @@ const StatChart = ({
   // Ag Grid
   const colDefs = useMemo<ColDef[]>(() => {
     return effectiveColumns.map((col) => {
-      const firstValue = castedData.find(
-        (row) => row[col] !== undefined && row[col] !== null
-      )?.[col];
+      const firstValue = castedData.find((row) => row[col] !== undefined && row[col] !== null)?.[
+        col
+      ];
       const isNumeric = typeof firstValue === 'number';
 
       return {

@@ -61,217 +61,219 @@ const StatChartHeader = ({
   selectedHistoryId,
   selectedHistoryLabel,
 }: StatChartHeaderProps) => {
-      const [editing, setEditing] = useState(false);
-      const [localTitle, setLocalTitle] = useState(title);
-      const inputRef = useRef<HTMLInputElement>(null);
-      const { t } = useTranslation();
-      const [history, setHistory] = useState<StatHistoryItem[]>([]);
-      const [historyLoaded, setHistoryLoaded] = useState(false); // Indica se caricato - usato come check per non ricaricare
-      const [historyLoading, setHistoryLoading] = useState(false); // Indica se in caricamento
-      const [historyError, setHistoryError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [localTitle, setLocalTitle] = useState(title);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
+  const [history, setHistory] = useState<StatHistoryItem[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false); // Indica se caricato - usato come check per non ricaricare
+  const [historyLoading, setHistoryLoading] = useState(false); // Indica se in caricamento
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
-      useEffect(() => {
-        setLocalTitle(title);
-      }, [title]);
+  useEffect(() => {
+    setLocalTitle(title);
+  }, [title]);
 
-      useEffect(() => {
-        if (editing) inputRef.current?.focus();
-      }, [editing]);
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
 
-      // Reset quando lo statId cambia
-      useEffect(() => {
+  // Reset quando lo statId cambia
+  useEffect(() => {
+    setHistory([]);
+    setHistoryLoaded(false);
+    setHistoryError(null);
+  }, [statId]);
+
+  // Carica la history di un chart
+  const handleHistoryLoad = async (open: boolean) => {
+    if (!open || historyLoaded || historyLoading) return;
+
+    setHistoryLoading(true);
+    setHistoryError(null);
+
+    try {
+      const response = await apiFetch<StatHistoryItem[]>(`v1/stats/${statId}/history`);
+      setHistory(response);
+      setHistoryLoaded(true);
+    } catch (error) {
+      console.error('Error while fetching chart history:', error);
+      if (error instanceof Error && error.message.includes('404')) {
         setHistory([]);
-        setHistoryLoaded(false);
-        setHistoryError(null);
-      }, [statId]);
+        setHistoryLoaded(true);
+      } else {
+        setHistoryError('Unable to load chart history');
+      }
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
-      // Carica la history di un chart
-      const handleHistoryLoad = async (open: boolean) => {
-        if (!open || historyLoaded || historyLoading) return;
-
-        setHistoryLoading(true);
-        setHistoryError(null);
-
-        try {
-          const response = await apiFetch<StatHistoryItem[]>(`v1/stats/${statId}/history`);
-          setHistory(response);
-          setHistoryLoaded(true);
-        } catch (error) {
-          console.error('Error while fetching chart history:', error);
-          if (error instanceof Error && error.message.includes('404')) {
-            setHistory([]);
-            setHistoryLoaded(true);
-          } else {
-            setHistoryError('Unable to load chart history');
-          }
-        } finally {
-          setHistoryLoading(false);
-        }
-      };
-
-      return (
-        <div className="flex items-center justify-between px-4 py-2 border-b">
-          <div onDoubleClick={() => setEditing(true)} className="flex-1 cursor-text">
-            {editing ? (
-              <input
-                ref={inputRef}
-                className="text-base font-semibold text-gray-800 bg-white border-b border-gray-300 focus:outline-none focus:border-gray-200"
-                value={localTitle}
-                onChange={(e) => setLocalTitle(e.target.value)}
-                onBlur={() => {
-                  const trimmed = localTitle.trim();
-                  if (trimmed === '') {
-                    setLocalTitle(title); // ripristina il titolo originale
-                  } else if (trimmed !== title) {
-                    onTitleChange(trimmed);
-                  }
-                  setEditing(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    inputRef.current?.blur();
-                  }
-                }}
-              />
+  return (
+    <div className="flex items-center justify-between px-4 py-2 border-b">
+      <div onDoubleClick={() => setEditing(true)} className="flex-1 cursor-text">
+        {editing ? (
+          <input
+            ref={inputRef}
+            className="text-base font-semibold text-gray-800 bg-white border-b border-gray-300 focus:outline-none focus:border-gray-200"
+            value={localTitle}
+            onChange={(e) => setLocalTitle(e.target.value)}
+            onBlur={() => {
+              const trimmed = localTitle.trim();
+              if (trimmed === '') {
+                setLocalTitle(title); // ripristina il titolo originale
+              } else if (trimmed !== title) {
+                onTitleChange(trimmed);
+              }
+              setEditing(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                inputRef.current?.blur();
+              }
+            }}
+          />
+        ) : (
+          <h3 className="text-base font-semibold text-gray-800 truncate">
+            {localTitle.trim() === '' ? (
+              <span className="italic text-gray-400"> {t('chart.no_title')}</span>
             ) : (
-              <h3 className="text-base font-semibold text-gray-800 truncate">
-                {localTitle.trim() === '' ? (
-                  <span className="italic text-gray-400"> {t('chart.no_title')}</span>
-                ) : (
-                  localTitle
-                )}
-              </h3>
+              localTitle
             )}
-          </div>
+          </h3>
+        )}
+      </div>
 
-          <div className="flex gap-1 items-center ml-2">
-            {justSaved && (
-              <span className="text-xs text-gray-500 font-medium animate-fade-in">
-                {t('label.saved')}
-              </span>
-            )}
+      <div className="flex gap-1 items-center ml-2">
+        {justSaved && (
+          <span className="text-xs text-gray-500 font-medium animate-fade-in">
+            {t('label.saved')}
+          </span>
+        )}
 
-            {selectedHistoryLabel ? (
-              <span
-                className="text-xs text-gray-500 max-w-[180px] truncate"
-                title={selectedHistoryLabel}
-              >
-                {selectedHistoryLabel}
-              </span>
-            ) : null}
+        {selectedHistoryLabel ? (
+          <span
+            className="text-xs text-gray-500 max-w-[180px] truncate"
+            title={selectedHistoryLabel}
+          >
+            {selectedHistoryLabel}
+          </span>
+        ) : null}
 
-            {/* --HISTORY-- */}
-            <DropdownMenu onOpenChange={handleHistoryLoad}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-8 h-8" title='Chart history'>
-                  <Clock className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
+        {/* --HISTORY-- */}
+        <DropdownMenu onOpenChange={handleHistoryLoad}>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="w-8 h-8" title="Chart history">
+              <Clock className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-60">
-                <DropdownMenuLabel>{t('history.chart_history')}</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="w-60">
+            <DropdownMenuLabel>{t('history.chart_history')}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {historyLoading ? (
+              <DropdownMenuItem disabled>{t('history.loading')}</DropdownMenuItem>
+            ) : historyError ? (
+              <DropdownMenuItem disabled>{t('history.error')}</DropdownMenuItem>
+            ) : history.length === 0 ? (
+              <DropdownMenuItem disabled>{t('history.no_chart')}</DropdownMenuItem>
+            ) : (
+              <>
+                <DropdownMenuItem
+                  onSelect={() => onHistoryReset()}
+                  className={selectedHistoryId === null ? 'bg-gray-100 text-gray-900' : ''}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{t('history.current_version')}</span>
+                    <span className="text-xs text-gray-500">{t('history.recent_data')}</span>
+                  </div>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {historyLoading ? (
-                  <DropdownMenuItem disabled>{t('history.loading')}</DropdownMenuItem>
-                ) : historyError ? (
-                  <DropdownMenuItem disabled>{t('history.error')}</DropdownMenuItem>
-                ) : history.length === 0 ? (
-                  <DropdownMenuItem disabled>{t('history.no_chart')}</DropdownMenuItem>
-                ) : (
-                  <>
+                {history.map((item, index) => {
+                  const versionTitle = `${t('history.version')} ${index + 1}`;
+                  const formattedDate = formatHistoryDate(item.historical_date);
+                  const displayDate = formattedDate ?? t('history.date_not_available');
+                  const isSelected = selectedHistoryId === item.historical_id;
+
+                  return (
                     <DropdownMenuItem
-                      onSelect={() => onHistoryReset()}
-                      className={selectedHistoryId === null ? 'bg-gray-100 text-gray-900' : ''}
+                      key={item.historical_id}
+                      onSelect={() =>
+                        onHistorySelect(item, {
+                          index,
+                          label: formattedDate
+                            ? `${versionTitle} • ${formattedDate}`
+                            : versionTitle,
+                        })
+                      }
+                      className={isSelected ? 'bg-gray-100 text-gray-900' : ''}
                     >
                       <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{t('history.current_version')}</span>
-                        <span className="text-xs text-gray-500">{t('history.recent_data')}</span>
+                        <span className="text-sm font-semibold">{versionTitle}</span>
+                        <span className="text-xs text-gray-500">{displayDate}</span>
                       </div>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    {history.map((item, index) => {
-                      const versionTitle = `${t('history.version')} ${index + 1}`;
-                      const formattedDate = formatHistoryDate(item.historical_date);
-                      const displayDate = formattedDate ?? t('history.date_not_available');
-                      const isSelected = selectedHistoryId === item.historical_id;
+                  );
+                })}
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-                      return (
-                        <DropdownMenuItem
-                          key={item.historical_id}
-                          onSelect={() =>
-                            onHistorySelect(item, {
-                              index,
-                              label: formattedDate ? `${versionTitle} • ${formattedDate}` : versionTitle,
-                            })
-                          }
-                          className={isSelected ? 'bg-gray-100 text-gray-900' : ''}
-                        >
-                          <div className="flex flex-col">
-                            <span className="text-sm font-semibold">{versionTitle}</span>
-                            <span className="text-xs text-gray-500">{displayDate}</span>
-                          </div>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+        {/* --SAVE-- */}
+        <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave}>
+          <Save className="w-4 h-4" />
+        </Button>
 
-            {/* --SAVE-- */}
-            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave}>
-              <Save className="w-4 h-4" />
+        {/* --PREFERITO-- */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="w-8 h-8"
+          onClick={onToggleStar}
+          aria-label="Segna come preferito"
+        >
+          {isStarred ? (
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+          ) : (
+            <Star className="w-4 h-4 text-black" />
+          )}
+        </Button>
+
+        {/* --LINK TABELLA-GRAFICO-- */}
+        {openTable ? (
+          <Link to={`/stat/${statId}`}>
+            <Button variant="ghost" size="icon" className="w-8 h-8">
+              <SquareArrowOutUpRight className="w-4 h-4" />
             </Button>
-            
-            {/* --PREFERITO-- */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-8 h-8"
-              onClick={onToggleStar}
-              aria-label="Segna come preferito"
-            >
-              {isStarred ? (
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              ) : (
-              <Star className="w-4 h-4 text-black" />
-              )}
+          </Link>
+        ) : null}
+
+        {/* --ELIMINA-- */}
+        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-lg w-8 h-8">
+              <X className="w-4 h-4" />
             </Button>
-
-            {/* --LINK TABELLA-GRAFICO-- */}
-            {openTable ? (
-              <Link to={`/stat/${statId}`}>
-                <Button variant="ghost" size="icon" className="w-8 h-8">
-                  <SquareArrowOutUpRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            ) : null}
-
-            {/* --ELIMINA-- */}
-            <Dialog open={showDialog} onOpenChange={setShowDialog}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-lg w-8 h-8">
-                  <X className="w-4 h-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <div className="text-sm">{t('chart.confirm_delete')}</div>
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setShowDialog(false)}>
-                    {t('button.cancel')}
-                  </Button>
-                  <Button
-                    className="bg-plank-pink text-white hover:bg-plank-pink/90"
-                    onClick={onConfirmDelete}
-                  >
-                    {t('button.delete')}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      );
-    };
+          </DialogTrigger>
+          <DialogContent>
+            <div className="text-sm">{t('chart.confirm_delete')}</div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setShowDialog(false)}>
+                {t('button.cancel')}
+              </Button>
+              <Button
+                className="bg-plank-pink text-white hover:bg-plank-pink/90"
+                onClick={onConfirmDelete}
+              >
+                {t('button.delete')}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+};
 
 export default StatChartHeader;
