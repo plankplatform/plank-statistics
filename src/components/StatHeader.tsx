@@ -41,6 +41,7 @@ interface StatHeaderProps {
   onDownloadCsv: () => void;
   onDownloadExcel: () => void;
   tableHistory?: TableHistoryControl;
+  disableSave?: boolean;
 }
 
 const StatHeader = ({
@@ -56,6 +57,7 @@ const StatHeader = ({
   onDownloadCsv,
   onDownloadExcel,
   tableHistory,
+  disableSave = false
 }: StatHeaderProps) => {
   
   const { t } = useTranslation();
@@ -201,6 +203,7 @@ const StatHeader = ({
                       size="icon"
                       className="w-10 h-10"
                       onClick={onSaveGridState}
+                      disabled={disableSave}
                     >
                       <Save className="size-5 text-gray-800" />
                     </Button>

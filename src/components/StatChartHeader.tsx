@@ -41,6 +41,7 @@ interface StatChartHeaderProps {
   onHistoryReset: () => void;
   selectedHistoryId: number | null;
   selectedHistoryLabel?: string;
+  isHistoryMode?: boolean;
 }
 
 // Componente react vero e proprio: riceve la props -> gestisce logica (stato,funzioni, effetti) -> ritorna JSX
@@ -60,6 +61,7 @@ const StatChartHeader = ({
   onHistoryReset,
   selectedHistoryId,
   selectedHistoryLabel,
+  isHistoryMode = false,
 }: StatChartHeaderProps) => {
       const [editing, setEditing] = useState(false);
       const [localTitle, setLocalTitle] = useState(title);
@@ -219,7 +221,7 @@ const StatChartHeader = ({
             </DropdownMenu>
 
             {/* --SAVE-- */}
-            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave}>
+            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={onSave} disabled={isHistoryMode}>
               <Save className="w-4 h-4" />
             </Button>
             
@@ -230,6 +232,7 @@ const StatChartHeader = ({
               className="w-8 h-8"
               onClick={onToggleStar}
               aria-label="Segna come preferito"
+              disabled={isHistoryMode}
             >
               {isStarred ? (
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
@@ -250,7 +253,7 @@ const StatChartHeader = ({
             {/* --ELIMINA-- */}
             <Dialog open={showDialog} onOpenChange={setShowDialog}>
               <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-lg w-8 h-8">
+                <Button variant="ghost" size="icon" className="text-lg w-8 h-8" disabled={isHistoryMode}>
                   <X className="w-4 h-4" />
                 </Button>
               </DialogTrigger>

@@ -624,6 +624,7 @@ const StatPage = () => {
       justSaved={justSaved}
       onDownloadCsv={onDownloadCsv}
       onDownloadExcel={onDownloadExcel}
+      disableSave={selectedTableHistoryId !== null}
       tableHistory={
         data
           ? {
