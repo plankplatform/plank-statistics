@@ -41,6 +41,7 @@ interface StatHeaderProps {
   onDownloadCsv: () => void;
   onDownloadExcel: () => void;
   tableHistory?: TableHistoryControl;
+  disableSave?: boolean;
 }
 
 const StatHeader = ({
@@ -56,8 +57,8 @@ const StatHeader = ({
   onDownloadCsv,
   onDownloadExcel,
   tableHistory,
+  disableSave = false,
 }: StatHeaderProps) => {
-  
   const { t } = useTranslation();
 
   const utcDate = new Date(lastExecTime.replace(' ', 'T') + 'Z');
@@ -131,18 +132,17 @@ const StatHeader = ({
             </span>
           ) : null}
 
-          {view === 'table' &&  (
+          {view === 'table' && (
             <>
               {/* Desktop version: Save, Reset, Export */}
               <div className="hidden sm:flex items-center gap-3">
-
                 {/* -- HISTORY -- */}
                 <DropdownMenu onOpenChange={tableHistory?.onOpenChange}>
                   <Tooltip delayDuration={300}>
                     <TooltipTrigger asChild>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="w-10 h-10">
-                          <Clock className='size-5 text-gray-800' />
+                          <Clock className="size-5 text-gray-800" />
                         </Button>
                       </DropdownMenuTrigger>
                     </TooltipTrigger>
@@ -150,46 +150,58 @@ const StatHeader = ({
                       <p>{t('tooltip.load_history')}</p>
                     </TooltipContent>
                   </Tooltip>
-                  <DropdownMenuContent align='end' className='w-64'>
-                    <DropdownMenuLabel>
-                      {t('history_table.table_history')}
-                    </DropdownMenuLabel>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuLabel>{t('history_table.table_history')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    { tableHistory?.loading ? (
-                        <DropdownMenuItem disabled>{t('history_table.loading')}</DropdownMenuItem>
-                      ) : tableHistory?.error ? (
-                        <DropdownMenuItem disabled>{t('history_table.error')}</DropdownMenuItem>
-                      ) : tableHistory?.items.length === 0 ? (
-                        <DropdownMenuItem disabled>{t('history_table.no_table')}</DropdownMenuItem>
-                      ) : (
-                        <>
-                          <DropdownMenuItem onSelect={() => tableHistory?.onReset()} className={tableHistory?.selectedId === null ? 'bg-gray-100 text-gray-900' : ''}>
-                            <div className='flex flex-col'>
-                              <span className='text-sm font-semibold'>{t('history_table.current_version')}</span>
-                              <span className='text-xs text-gray-500'>{t('history_table.recent_data')}</span>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          { tableHistory?.items.map( (item, index) => {
-                              const versionTitle = `${t('history_table.version')} ${index + 1}`;
-                              const formattedDate = formatHistoryDate(item.historical_date);
-                              const displayDate = formattedDate ?? t('history_table.date_not_available');
-                              const isSelected = tableHistory.selectedId === item.historical_id;
-                              const label = formattedDate ? `${versionTitle} • ${formattedDate}` : versionTitle;
-
-                              return (
-                                <DropdownMenuItem key={item.historical_id} onSelect={() => tableHistory.onSelect(item, {index, label})} className={isSelected ? 'bg-gray-100 text-gray-900' : ''}>
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-semibold">{versionTitle}</span>
-                                    <span className="text-xs text-gray-500">{displayDate}</span>
-                                  </div>
-                                </DropdownMenuItem>
-                              );
-                            })
+                    {tableHistory?.loading ? (
+                      <DropdownMenuItem disabled>{t('history_table.loading')}</DropdownMenuItem>
+                    ) : tableHistory?.error ? (
+                      <DropdownMenuItem disabled>{t('history_table.error')}</DropdownMenuItem>
+                    ) : tableHistory?.items.length === 0 ? (
+                      <DropdownMenuItem disabled>{t('history_table.no_table')}</DropdownMenuItem>
+                    ) : (
+                      <>
+                        <DropdownMenuItem
+                          onSelect={() => tableHistory?.onReset()}
+                          className={
+                            tableHistory?.selectedId === null ? 'bg-gray-100 text-gray-900' : ''
                           }
-                        </>
-                      )
-                    }
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold">
+                              {t('history_table.current_version')}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {t('history_table.recent_data')}
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {tableHistory?.items.map((item, index) => {
+                          const versionTitle = `${t('history_table.version')} ${index + 1}`;
+                          const formattedDate = formatHistoryDate(item.historical_date);
+                          const displayDate =
+                            formattedDate ?? t('history_table.date_not_available');
+                          const isSelected = tableHistory.selectedId === item.historical_id;
+                          const label = formattedDate
+                            ? `${versionTitle} • ${formattedDate}`
+                            : versionTitle;
+
+                          return (
+                            <DropdownMenuItem
+                              key={item.historical_id}
+                              onSelect={() => tableHistory.onSelect(item, { index, label })}
+                              className={isSelected ? 'bg-gray-100 text-gray-900' : ''}
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold">{versionTitle}</span>
+                                <span className="text-xs text-gray-500">{displayDate}</span>
+                              </div>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -201,6 +213,7 @@ const StatHeader = ({
                       size="icon"
                       className="w-10 h-10"
                       onClick={onSaveGridState}
+                      disabled={disableSave}
                     >
                       <Save className="size-5 text-gray-800" />
                     </Button>
