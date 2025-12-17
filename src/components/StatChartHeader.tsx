@@ -96,7 +96,7 @@ const StatChartHeader = ({
 
         try {
           const response = await apiFetch<StatHistoryItem[]>(`v1/stats/${statId}/history`);
-          setHistory(response.slice(0,10));
+          setHistory(response.slice(0,5));
           setHistoryLoaded(true);
         } catch (error) {
           console.error('Error while fetching chart history:', error);
