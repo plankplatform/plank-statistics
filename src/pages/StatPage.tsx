@@ -642,7 +642,7 @@ const StatPage = () => {
     />
 
     <div className="flex gap-6 md:gap-8 mt-6">
-      <div className="w-[250px] shrink-0 hidden md:block">
+      <div className="w-48 shrink-0 hidden md:block">
         {sidebarLoading ? (
           <Loader />
         ) : (
@@ -654,7 +654,7 @@ const StatPage = () => {
             />
           )
         )}
-    </div>
+      </div>
 
 
       <div className="flex-1 min-w-0">
