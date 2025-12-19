@@ -96,7 +96,7 @@ const StatChartHeader = ({
 
     try {
       const response = await apiFetch<StatHistoryItem[]>(`v1/stats/${statId}/history`);
-      setHistory(response.slice(0, 10));
+      setHistory(response.slice(0, 20));
       setHistoryLoaded(true);
     } catch (error) {
       console.error('Error while fetching chart history:', error);
@@ -170,7 +170,7 @@ const StatChartHeader = ({
             </Button>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" className="w-60">
+          <DropdownMenuContent align="end" className="w-60 max-h-72 overflow-y-scroll">
             <DropdownMenuLabel>{t('history.chart_history')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {historyLoading ? (
