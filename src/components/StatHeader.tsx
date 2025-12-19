@@ -150,7 +150,7 @@ const StatHeader = ({
                       <p>{t('tooltip.load_history')}</p>
                     </TooltipContent>
                   </Tooltip>
-                  <DropdownMenuContent align="end" className="w-64">
+                  <DropdownMenuContent align="end" className="w-64 max-h-72 overflow-y-scroll">
                     <DropdownMenuLabel>{t('history_table.table_history')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {tableHistory?.loading ? (
