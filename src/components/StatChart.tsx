@@ -241,6 +241,7 @@ const StatChart = ({
         onHistoryReset={handleHistoryReset}
         selectedHistoryId={historyOverride?.id ?? null}
         selectedHistoryLabel={historyOverride?.label}
+        isHistoryMode={!!historyOverride}
       />
 
       <div style={{ display: 'none' }}>

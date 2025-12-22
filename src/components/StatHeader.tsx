@@ -41,6 +41,7 @@ interface StatHeaderProps {
   onDownloadCsv: () => void;
   onDownloadExcel: () => void;
   tableHistory?: TableHistoryControl;
+  disableSave?: boolean;
 }
 
 const StatHeader = ({
@@ -56,6 +57,7 @@ const StatHeader = ({
   onDownloadCsv,
   onDownloadExcel,
   tableHistory,
+  disableSave = false
 }: StatHeaderProps) => {
   
   const { t } = useTranslation();
@@ -150,7 +152,7 @@ const StatHeader = ({
                       <p>{t('tooltip.load_history')}</p>
                     </TooltipContent>
                   </Tooltip>
-                  <DropdownMenuContent align='end' className='w-64'>
+                  <DropdownMenuContent align="end" className="w-64 max-h-72 overflow-y-scroll">
                     <DropdownMenuLabel>
                       {t('history_table.table_history')}
                     </DropdownMenuLabel>
@@ -201,6 +203,7 @@ const StatHeader = ({
                       size="icon"
                       className="w-10 h-10"
                       onClick={onSaveGridState}
+                      disabled={disableSave}
                     >
                       <Save className="size-5 text-gray-800" />
                     </Button>
