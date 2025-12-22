@@ -45,7 +45,8 @@
     "save_table": "Save table",
     "reset_table": "Reset table",
     "back": "Back",
-    "load_history": "Load history"
+    "load_history": "Load history",
+    "save_table_selection": "Save table selection"
   },
   "history": {
     "chart_history": "Chart history",
@@ -66,5 +67,16 @@
     "recent_data": "Most recent data",
     "date_not_available": "Date not available",
     "version": "Version"
+  },
+  "table": {
+    "save": "Save table",
+    "name_placeholder": "Table name",
+    "invalid_name": "Please enter a valid table name",
+    "confirm_delete": "Do you want to delete the table?"
+  },
+  "table_saved": {
+    "title": "Saved tables",
+    "empty_state": "There are no saved tables for this statistic",
+    "no_selection": "Select at least one cell range"
   }
 }

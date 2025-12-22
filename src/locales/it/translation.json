@@ -45,7 +45,8 @@
     "save_table": "Salva la tabella",
     "reset_table": "Ripristina stato iniziale",
     "back": "Indietro",
-    "load_history": "Carica storico"
+    "load_history": "Carica storico",
+    "save_table_selection": "Salva selezione tabella"
   },
   "history":{
     "chart_history": "Storico grafico",
@@ -66,5 +67,17 @@
     "recent_data": "Data più recente",
     "date_not_available": "Data non disponibile",
     "version": "Versione"
+  },
+
+    "table": {
+    "save": "Salva tabella",
+    "name_placeholder": "Nome tabella",
+    "invalid_name": "Inserisci un nome valido per la tabella",
+    "confirm_delete": "Vuoi eliminare la tabella?"
+  },
+  "table_saved": {
+    "title": "Tabelle salvate",
+    "empty_state": "Non ci sono tabelle salvate per questa statistica",
+    "no_selection": "Seleziona almeno un intervallo di celle"
   }
 }
