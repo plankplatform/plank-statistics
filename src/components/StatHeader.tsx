@@ -1,4 +1,4 @@
-import { ArrowLeft, Save, RotateCcw, Download, Clock } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Download, Clock, Table2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,7 @@ interface StatHeaderProps {
   onDownloadExcel: () => void;
   tableHistory?: TableHistoryControl;
   disableSave?: boolean;
+  onSaveTableSelection?: () => void;
 }
 
 const StatHeader = ({
@@ -57,9 +58,9 @@ const StatHeader = ({
   onDownloadCsv,
   onDownloadExcel,
   tableHistory,
-  disableSave = false
+  disableSave = false,
+  onSaveTableSelection,
 }: StatHeaderProps) => {
-  
   const { t } = useTranslation();
 
   const utcDate = new Date(lastExecTime.replace(' ', 'T') + 'Z');
@@ -123,7 +124,6 @@ const StatHeader = ({
             </span>
           )}
 
-          {/* Titolo: label(versione + data) visibile solo se viene cliccata una versione diversa dalla "most recent date" */}
           {view === 'table' && tableHistory?.selectedLabel ? (
             <span
               className="text-xs text-gray-500 max-w-[200px] truncate"
@@ -133,9 +133,9 @@ const StatHeader = ({
             </span>
           ) : null}
 
-          {view === 'table' &&  (
+          {view === 'table' && (
             <>
-              {/* Desktop version: Save, Reset, Export */}
+              {/* Desktop version: Save, Reset, Export... */}
               <div className="hidden sm:flex items-center gap-3">
 
                 {/* -- HISTORY -- */}
@@ -144,7 +144,7 @@ const StatHeader = ({
                     <TooltipTrigger asChild>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="w-10 h-10">
-                          <Clock className='size-5 text-gray-800' />
+                          <Clock className="size-5 text-gray-800" />
                         </Button>
                       </DropdownMenuTrigger>
                     </TooltipTrigger>
@@ -153,49 +153,60 @@ const StatHeader = ({
                     </TooltipContent>
                   </Tooltip>
                   <DropdownMenuContent align="end" className="w-64 max-h-72 overflow-y-scroll">
-                    <DropdownMenuLabel>
-                      {t('history_table.table_history')}
-                    </DropdownMenuLabel>
+                    <DropdownMenuLabel>{t('history_table.table_history')}</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    { tableHistory?.loading ? (
-                        <DropdownMenuItem disabled>{t('history_table.loading')}</DropdownMenuItem>
-                      ) : tableHistory?.error ? (
-                        <DropdownMenuItem disabled>{t('history_table.error')}</DropdownMenuItem>
-                      ) : tableHistory?.items.length === 0 ? (
-                        <DropdownMenuItem disabled>{t('history_table.no_table')}</DropdownMenuItem>
-                      ) : (
-                        <>
-                          <DropdownMenuItem onSelect={() => tableHistory?.onReset()} className={tableHistory?.selectedId === null ? 'bg-gray-100 text-gray-900' : ''}>
-                            <div className='flex flex-col'>
-                              <span className='text-sm font-semibold'>{t('history_table.current_version')}</span>
-                              <span className='text-xs text-gray-500'>{t('history_table.recent_data')}</span>
-                            </div>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          { tableHistory?.items.map( (item, index) => {
-                              const versionTitle = `${t('history_table.version')} ${index + 1}`;
-                              const formattedDate = formatHistoryDate(item.historical_date);
-                              const displayDate = formattedDate ?? t('history_table.date_not_available');
-                              const isSelected = tableHistory.selectedId === item.historical_id;
-                              const label = formattedDate ? `${versionTitle} • ${formattedDate}` : versionTitle;
-
-                              return (
-                                <DropdownMenuItem key={item.historical_id} onSelect={() => tableHistory.onSelect(item, {index, label})} className={isSelected ? 'bg-gray-100 text-gray-900' : ''}>
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-semibold">{versionTitle}</span>
-                                    <span className="text-xs text-gray-500">{displayDate}</span>
-                                  </div>
-                                </DropdownMenuItem>
-                              );
-                            })
+                    {tableHistory?.loading ? (
+                      <DropdownMenuItem disabled>{t('history_table.loading')}</DropdownMenuItem>
+                    ) : tableHistory?.error ? (
+                      <DropdownMenuItem disabled>{t('history_table.error')}</DropdownMenuItem>
+                    ) : tableHistory?.items.length === 0 ? (
+                      <DropdownMenuItem disabled>{t('history_table.no_table')}</DropdownMenuItem>
+                    ) : (
+                      <>
+                        <DropdownMenuItem
+                          onSelect={() => tableHistory?.onReset()}
+                          className={
+                            tableHistory?.selectedId === null ? 'bg-gray-100 text-gray-900' : ''
                           }
-                        </>
-                      )
-                    }
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold">
+                              {t('history_table.current_version')}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {t('history_table.recent_data')}
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {tableHistory?.items.map((item, index) => {
+                          const versionTitle = `${t('history_table.version')} ${index + 1}`;
+                          const formattedDate = formatHistoryDate(item.historical_date);
+                          const displayDate = formattedDate ?? t('history_table.date_not_available');
+                          const isSelected = tableHistory.selectedId === item.historical_id;
+                          const label = formattedDate
+                            ? `${versionTitle} - ${formattedDate}`
+                            : versionTitle;
+
+                          return (
+                            <DropdownMenuItem
+                              key={item.historical_id}
+                              onSelect={() => tableHistory.onSelect(item, { index, label })}
+                              className={isSelected ? 'bg-gray-100 text-gray-900' : ''}
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold">{versionTitle}</span>
+                                <span className="text-xs text-gray-500">{displayDate}</span>
+                              </div>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* -- SAVE -- */}
+                {/* -- SAVE SECTION -- */}
                 <Tooltip delayDuration={300}>
                   <TooltipTrigger asChild>
                     <Button
@@ -212,6 +223,24 @@ const StatHeader = ({
                     <p>{t('tooltip.save_table')}</p>
                   </TooltipContent>
                 </Tooltip>
+
+                {onSaveTableSelection && (
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="w-10 h-10"
+                        onClick={onSaveTableSelection}
+                      >
+                        <Table2 className="size-5 text-gray-800" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('tooltip.save_table_selection')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
 
                 {/* -- RESET -- */}
                 <Tooltip delayDuration={300}>

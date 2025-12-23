@@ -69,11 +69,12 @@
     "version": "Versione"
   },
 
-    "table": {
+  "table": {
     "save": "Salva tabella",
     "name_placeholder": "Nome tabella",
     "invalid_name": "Inserisci un nome valido per la tabella",
-    "confirm_delete": "Vuoi eliminare la tabella?"
+    "confirm_delete": "Vuoi eliminare la tabella?",
+    "confirm_save": "Vuoi salvare la tabella?"
   },
   "table_saved": {
     "title": "Tabelle salvate",

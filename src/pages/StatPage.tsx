@@ -17,16 +17,19 @@ import ReactDOMServer from 'react-dom/server';
 import { Save } from 'lucide-react';
 import { set } from 'date-fns';
 import type { StatHistoryItem } from '../components/StatChartHeader';
-import { 
-  castNumericValues, 
-  normalizeChartOptions, 
-  deepClone, 
-  parseColumnsOrder, 
-  parseJsonRows, 
-  normalizeCol} from '@/lib/utils';
+import {
+  castNumericValues,
+  normalizeChartOptions,
+  deepClone,
+  parseColumnsOrder,
+  parseJsonRows,
+  normalizeCol,
+} from '@/lib/utils';
 
-import AccordionMenu from "@/components/AccordionMenu";
+import AccordionMenu from '@/components/AccordionMenu';
 
+import SaveTableModal from '../components/SaveTableModal';
+import SavedTableCard from '../components/SavedTableCard';
 
 const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
@@ -35,7 +38,6 @@ ModuleRegistry.registerModules([
   IntegratedChartsModule.with(AgChartsEnterpriseModule),
 ]);
 
-
 interface TableGridStateSnapshot {
   filters: Record<string, any>;
   columnState: any[];
@@ -43,6 +45,15 @@ interface TableGridStateSnapshot {
   rowGroupCols: string[];
   pivotCols: string[];
   valueCols: string[];
+}
+
+interface SavedTableItem {
+  id: number;
+  title: string;
+  stat_id: number | string;
+  columns: string[];
+  rows: Record<string, any>[];
+  grid_state?: any;
 }
 
 // Ricostruisce lo stato della griglia ritornado uno "screen" della struttura
@@ -149,10 +160,22 @@ const StatPage = () => {
   const tableHistoryPreviousStateRef = useRef<TableGridStateSnapshot | null>(null);
 
   // Menu a tendina laterale
-  const [sidebarGroups, setSidebarGroups] = useState<{ group: string; stats: { id: number; title: string; description?: string }[] }[]>([]);
+  const [sidebarGroups, setSidebarGroups] = useState<
+    { group: string; stats: { id: number; title: string; description?: string }[] }[]
+  >([]);
   const [activeGroupFinal, setActiveGroupFinal] = useState<string | null>(null);
   const [sidebarLoading, setSidebarLoading] = useState(true);
 
+  // Salvataggio versione tabella
+  const [savedTablesCache, setSavedTablesCache] = useState<
+    Record<number | string, SavedTableItem[]>
+  >({});
+  const [tablesLoading, setTablesLoading] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
+  const [pendingTableSelection, setPendingTableSelection] = useState<{
+    columns: string[];
+    rows: Record<string, any>[];
+  } | null>(null);
 
   // Inizializza griglia Ag Grid al caricamento o se cambiano i dati [data,pivotMode,...]
   const applyInitialGridState = useCallback(() => {
@@ -223,7 +246,10 @@ const StatPage = () => {
   };
 
   // Gestione selezione della versione della tabella (logica simile a handleHistoryLoad ↑)
-  const handleTableHistorySelect = ( item: StatHistoryItem, { label }: { index: number; label: string }) => {
+  const handleTableHistorySelect = (
+    item: StatHistoryItem,
+    { label }: { index: number; label: string }
+  ) => {
     if (!data) return;
 
     // Salvo lo stato della tabella se nessuna versione/stato è stato selezionato
@@ -268,7 +294,7 @@ const StatPage = () => {
     }, 0);
   };
 
-  // Ricarica la versione principale 
+  // Ricarica la versione principale
   const handleTableHistoryReset = () => {
     if (!data) return;
 
@@ -460,6 +486,22 @@ const StatPage = () => {
   }, [view, data, savedGraphsCache]);
 
   useEffect(() => {
+    if (view !== 'table' || !data) return;
+
+    const cached = savedTablesCache[data.id];
+    if (cached) return;
+
+    setTablesLoading(true);
+    apiFetch<any[]>(`v1/stats/tables?stat_id=${data.id}`)
+      .then((res) => {
+        const parsed = res.map(normalizeSavedTable);
+        setSavedTablesCache((prev) => ({ ...prev, [data.id]: parsed }));
+      })
+      .catch(console.error)
+      .finally(() => setTablesLoading(false));
+  }, [view, data, savedTablesCache]);
+
+  useEffect(() => {
     setSidebarLoading(true);
     apiFetch('v1/stats')
       .then((raw) => {
@@ -483,7 +525,6 @@ const StatPage = () => {
       })
       .finally(() => setSidebarLoading(false));
   }, [statId]);
-
 
   const effectiveRows = tableOverride?.rows ?? data?.rows ?? [];
 
@@ -608,127 +649,295 @@ const StatPage = () => {
     });
   };
 
-  const graphs = data ? savedGraphsCache[data.id] ?? [] : [];
+  const normalizeSavedTable = (item: any): SavedTableItem => {
+    const columns = parseColumnsOrder(item.columns, []);
+    const rows = parseJsonRows(item.rows);
+    const grid_state =
+      typeof item.grid_state === 'string' ? JSON.parse(item.grid_state) : item.grid_state;
+
+    return {
+      id: Number(item.id),
+      title: item.title,
+      stat_id: item.stat_id,
+      columns,
+      rows,
+      grid_state,
+    };
+  };
+
+  const getSelectedTablePayload = () => {
+    const api = gridRef.current?.api;
+    if (!api) return null;
+
+    const ranges = api.getCellRanges() || [];
+    if (!ranges.length) return null;
+
+    const rowToCols = new Map<number, Set<string>>();
+    const allColumns = new Set<string>();
+    const columnOrder = api.getColumnState().map((c) => c.colId);
+
+    for (const range of ranges) {
+      const colIds = (range.columns || []).map((c) => c.getColId());
+      colIds.forEach((colId) => allColumns.add(colId));
+
+      const start = range.startRow?.rowIndex ?? 0;
+      const end = range.endRow?.rowIndex ?? start;
+      const from = Math.min(start, end);
+      const to = Math.max(start, end);
+
+      for (let i = from; i <= to; i++) {
+        if (!rowToCols.has(i)) rowToCols.set(i, new Set<string>());
+        const rowCols = rowToCols.get(i);
+        colIds.forEach((colId) => rowCols?.add(colId));
+      }
+    }
+
+    const orderedColumns = columnOrder.filter((colId) => allColumns.has(colId));
+    const fallbackColumns = Array.from(allColumns);
+    const columns = orderedColumns.length ? orderedColumns : fallbackColumns;
+
+    const rowIndexes = Array.from(rowToCols.keys()).sort((a, b) => a - b);
+    const rows = rowIndexes.map((rowIndex) => {
+      const rowNode = api.getDisplayedRowAtIndex(rowIndex);
+      const rowData = rowNode?.data ?? {};
+      const rowCols = rowToCols.get(rowIndex) ?? new Set<string>();
+      const row: Record<string, any> = {};
+      columns.forEach((colId) => {
+        row[colId] = rowCols.has(colId) ? rowData[colId] : null;
+      });
+      return row;
+    });
+
+    return { columns, rows };
+  };
+
+  const handleSaveTableSelection = () => {
+    if (!data) return;
+    const payload = getSelectedTablePayload();
+    if (!payload) {
+      alert(t('table_saved.no_selection'));
+      return;
+    }
+
+    setPendingTableSelection(payload);
+    setShowTableModal(true);
+  };
+
+  const handleConfirmSaveTableSelection = (title: string) => {
+    if (!pendingTableSelection || !data) return;
+
+    const api = gridRef.current?.api;
+    const grid_state = api
+      ? {
+          filters: api.getFilterModel(),
+          columnState: api.getColumnState(),
+          pivotMode: api.isPivotMode(),
+          rowGroupCols: api.getRowGroupColumns().map((c) => c.getColId()),
+          pivotCols: api.getPivotColumns().map((c) => c.getColId()),
+          valueCols: api.getValueColumns().map((c) => c.getColId()),
+        }
+      : {
+          filters: {},
+          columnState: [],
+          pivotMode: false,
+          rowGroupCols: [],
+          pivotCols: [],
+          valueCols: [],
+        };
+
+    apiFetch('v1/stats/tables', {
+      method: 'POST',
+      body: JSON.stringify({
+        title,
+        stat_id: data.id,
+        columns: pendingTableSelection.columns,
+        rows: pendingTableSelection.rows,
+        grid_state,
+      }),
+    })
+      .then(() => {
+        setSavedTablesCache((prev) => {
+          const copy = { ...prev };
+          delete copy[data.id];
+          return copy;
+        });
+      })
+      .catch((err) => {
+        console.error('Errore durante il salvataggio tabella:', err);
+        alert('Errore durante il salvataggio della tabella');
+      })
+      .finally(() => {
+        setShowTableModal(false);
+        setPendingTableSelection(null);
+      });
+  };
+
+  const graphs = data ? (savedGraphsCache[data.id] ?? []) : [];
+  const savedTables = data ? (savedTablesCache[data.id] ?? []) : [];
 
   return (
-  <div className="px-6 py-4 w-[95%] mx-auto mb-24">
-    <StatHeader
-      title={data.title}
-      description={data.description}
-      frequency={data.frequency}
-      lastExecTime={data.lastexec_time}
-      view={view}
-      onChangeView={setView}
-      onReset={onReset}
-      onSaveGridState={handleSaveGridState}
-      justSaved={justSaved}
-      onDownloadCsv={onDownloadCsv}
-      onDownloadExcel={onDownloadExcel}
-      disableSave={selectedTableHistoryId !== null}
-      tableHistory={
-        data
-          ? {
-              items: tableHistory,
-              loading: tableHistoryLoading,
-              error: tableHistoryError,
-              onOpenChange: handleTableHistoryLoad,
-              onSelect: handleTableHistorySelect,
-              onReset: handleTableHistoryReset,
-              selectedId: selectedTableHistoryId,
-              selectedLabel: selectedTableHistoryLabel,
-            }
-          : undefined
-      }
-    />
+    <div className="px-6 py-4 w-[95%] mx-auto mb-24">
+      <StatHeader
+        title={data.title}
+        description={data.description}
+        frequency={data.frequency}
+        lastExecTime={data.lastexec_time}
+        view={view}
+        onChangeView={setView}
+        onReset={onReset}
+        onSaveGridState={handleSaveGridState}
+        justSaved={justSaved}
+        onDownloadCsv={onDownloadCsv}
+        onDownloadExcel={onDownloadExcel}
+        disableSave={selectedTableHistoryId !== null}
+        onSaveTableSelection={handleSaveTableSelection}
+        tableHistory={
+          data
+            ? {
+                items: tableHistory,
+                loading: tableHistoryLoading,
+                error: tableHistoryError,
+                onOpenChange: handleTableHistoryLoad,
+                onSelect: handleTableHistorySelect,
+                onReset: handleTableHistoryReset,
+                selectedId: selectedTableHistoryId,
+                selectedLabel: selectedTableHistoryLabel,
+              }
+            : undefined
+        }
+      />
 
-    <div className="flex gap-6 md:gap-8 mt-6">
-      <div className="w-48 shrink-0 hidden md:block">
-        {sidebarLoading ? (
-          <Loader />
-        ) : (
-          activeGroupFinal && (
-            <AccordionMenu
-              items={sidebarGroups}
-              activeGroup={activeGroupFinal}
-              activeStatId={statId}
-            />
-          )
-        )}
-      </div>
-
-
-      <div className="flex-1 min-w-0">
-        <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>
-          <StatTable
-            key={gridIsReady ? 'ready' : 'waiting'}
-            gridRef={gridRef}
-            rowData={effectiveRows}
-            columnDefs={columnDefs}
-            setHasChart={setHasChart}
-            chartMenuItems={getCustomChartMenuItems}
-            onFiltersChange={(filters) => {
-              tableFiltersRef.current = filters;
-            }}
-            onColumnStateChange={setTableColumnState}
-            onGridReady={handleGridReady}
-            pivotMode={pivotMode}
-          />
+      <div className="flex gap-6 md:gap-8 mt-6">
+        <div className="w-48 shrink-0 hidden md:block">
+          {sidebarLoading ? (
+            <Loader />
+          ) : (
+            activeGroupFinal && (
+              <AccordionMenu
+                items={sidebarGroups}
+                activeGroup={activeGroupFinal}
+                activeStatId={statId}
+              />
+            )
+          )}
         </div>
 
-        {view === 'graphs' &&
-          (graphsLoading ? (
-            <Loader />
-          ) : graphs.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center italic mt-24">
-              {t('chart.empty_state')}
-            </p>
-          ) : (
-            <div className="space-y-12 mt-2">
-              {graphs.map((graph) => (
-                <div key={graph.id}>
-                  <StatChart
-                    filters={graph.filters}
-                    sorting={graph.sorting}
-                    model={graph.config}
-                    data={data.rows}
-                    columns={data.columns}
-                    chartId={graph.id}
-                    title={graph.title}
-                    isStarred={graph.is_starred}
-                    openTable={false}
-                    statId={data.id}
-                    onDelete={() => {
-                      setSavedGraphsCache((prev) => {
-                        const updated = { ...prev };
-                        updated[data.id] = updated[data.id].filter((g) => g.id !== graph.id);
-                        return updated;
-                      });
-                    }}
-                    updateCachedGraph={(graphId, updatedData) => {
-                      setSavedGraphsCache((prev) => {
-                        const updated = { ...prev };
-                        const current = updated[data.id] || [];
-                        updated[data.id] = current.map((g) =>
-                          g.id === graphId ? { ...g, ...updatedData } : g
-                        );
-                        return updated;
-                      });
-                    }}
-                  />
+        <div className="flex-1 min-w-0">
+          <div className={view === 'table' && gridIsReady ? '' : 'hidden'}>
+            <StatTable
+              key={gridIsReady ? 'ready' : 'waiting'}
+              gridRef={gridRef}
+              rowData={effectiveRows}
+              columnDefs={columnDefs}
+              setHasChart={setHasChart}
+              chartMenuItems={getCustomChartMenuItems}
+              onFiltersChange={(filters) => {
+                tableFiltersRef.current = filters;
+              }}
+              onColumnStateChange={setTableColumnState}
+              onGridReady={handleGridReady}
+              pivotMode={pivotMode}
+            />
+            {view === 'table' && (
+              <div className="mt-10 space-y-6">
+                <div className="inline-flex items-center px-4 py-2 rounded-md bg-[#2b2e83] text-white text-base font-semibold">
+                  {t('table_saved.title')}
                 </div>
-              ))}
-            </div>
-          ))}
+                {tablesLoading ? (
+                  <Loader />
+                ) : savedTables.length === 0 ? (
+                  <p className="text-gray-500 text-sm text-center italic mt-6">
+                    {t('table_saved.empty_state')}
+                  </p>
+                ) : (
+                  <div className="space-y-8">
+                    {savedTables.map((table) => (
+                      <SavedTableCard
+                        key={table.id}
+                        table={table}
+                        onDelete={() => {
+                          setSavedTablesCache((prev) => {
+                            const updated = { ...prev };
+                            delete updated[data.id];
+                            return updated;
+                          });
+                        }}
+                        onUpdate={(tableId, updatedData) => {
+                          setSavedTablesCache((prev) => {
+                            const updated = { ...prev };
+                            const current = updated[data.id] || [];
+                            updated[data.id] = current.map((t) =>
+                              t.id === tableId ? { ...t, ...updatedData } : t
+                            );
+                            return updated;
+                          });
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {view === 'graphs' &&
+            (graphsLoading ? (
+              <Loader />
+            ) : graphs.length === 0 ? (
+              <p className="text-gray-500 text-sm text-center italic mt-24">
+                {t('chart.empty_state')}
+              </p>
+            ) : (
+              <div className="space-y-12 mt-2">
+                {graphs.map((graph) => (
+                  <div key={graph.id}>
+                    <StatChart
+                      filters={graph.filters}
+                      sorting={graph.sorting}
+                      model={graph.config}
+                      data={data.rows}
+                      columns={data.columns}
+                      chartId={graph.id}
+                      title={graph.title}
+                      isStarred={graph.is_starred}
+                      openTable={false}
+                      statId={data.id}
+                      onDelete={() => {
+                        setSavedGraphsCache((prev) => {
+                          const updated = { ...prev };
+                          updated[data.id] = updated[data.id].filter((g) => g.id !== graph.id);
+                          return updated;
+                        });
+                      }}
+                      updateCachedGraph={(graphId, updatedData) => {
+                        setSavedGraphsCache((prev) => {
+                          const updated = { ...prev };
+                          const current = updated[data.id] || [];
+                          updated[data.id] = current.map((g) =>
+                            g.id === graphId ? { ...g, ...updatedData } : g
+                          );
+                          return updated;
+                        });
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            ))}
+        </div>
       </div>
+
+      {showModal && lastChartModel && (
+        <SaveChartModal onClose={() => setShowModal(false)} onSave={handleConfirmSave} />
+      )}
+      {showTableModal && pendingTableSelection && (
+        <SaveTableModal
+          onClose={() => setShowTableModal(false)}
+          onSave={handleConfirmSaveTableSelection}
+        />
+      )}
     </div>
-
-    {showModal && lastChartModel && (
-      <SaveChartModal onClose={() => setShowModal(false)} onSave={handleConfirmSave} />
-    )}
-  </div>
-);
-
-
+  );
 };
 
 export default StatPage;
