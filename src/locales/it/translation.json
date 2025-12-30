@@ -14,6 +14,19 @@
     "no_title": "Nessun titolo",
     "invalid_name": "Inserisci un nome valido per il grafico."
   },
+  "table_config": {
+    "section_title": "Tabelle salvate",
+    "section_help": "Ogni tabella usa i dati della tabella principale con i filtri e configurazioni applicati",
+    "save_button": "Salva tabella filtrata",
+    "save": "Salva vista tabella",
+    "name_placeholder": "Nome tabella",
+    "invalid_name": "Inserisci un nome valido per la tabella",
+    "empty_state": "Nessuna tabella salvata",
+    "loading": "Caricamento...",
+    "error": "Errore caricamento tabelle salvate",
+    "rename_title": "Rinomina tabella",
+    "confirm_delete": "Vuoi eliminare questa tabella?"
+  },
   "view": {
     "table": "Tabella",
     "graphs": "Grafici"
@@ -47,23 +60,23 @@
     "back": "Indietro",
     "load_history": "Carica storico"
   },
-  "history":{
+  "history": {
     "chart_history": "Storico grafico",
     "loading": "Caricamento...",
     "error": "Errore nel caricamento dello storico grafici",
     "no_chart": "Storico grafico non disponibile",
     "current_version": "Versione attuale",
-    "recent_data": "Data più recente",
+    "recent_data": "Dati più recente",
     "date_not_available": "Data non disponibile",
     "version": "Versione"
   },
-  "history_table":{
+  "history_table": {
     "table_history": "Storico tabelle",
     "loading": "Caricamento...",
     "error": "Errore nel caricamento dello storico tabelle",
     "no_table": "Storico tabella non disponibile",
     "current_version": "Versione attuale",
-    "recent_data": "Data più recente",
+    "recent_data": "Dati più recente",
     "date_not_available": "Data non disponibile",
     "version": "Versione"
   }
