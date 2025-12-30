@@ -31,8 +31,8 @@ interface TableHistoryControl {
 interface StatHeaderProps {
   title: string;
   description?: string;
-  view: 'table' | 'graphs';
-  onChangeView: (view: 'table' | 'graphs') => void;
+  view: 'table' | 'graphs' | 'saved';
+  onChangeView: (view: 'table' | 'graphs' | 'saved') => void;
   frequency: number;
   lastExecTime: string;
   onReset: () => void;
@@ -99,7 +99,7 @@ const StatHeader = ({
             type="single"
             value={view}
             onValueChange={(value) => {
-              if (value) onChangeView(value as 'table' | 'graphs');
+              if (value) onChangeView(value as 'table' | 'graphs' | 'saved');
             }}
             className="bg-gray-100 rounded-md"
           >
@@ -114,6 +114,12 @@ const StatHeader = ({
               className="px-4 py-2 text-sm data-[state=on]:bg-plank-pink data-[state=on]:text-white"
             >
               {t('view.graphs')}
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="saved"
+              className="px-4 py-2 text-sm data-[state=on]:bg-plank-pink data-[state=on]:text-white"
+            >
+              {t('view.saved')}
             </ToggleGroupItem>
           </ToggleGroup>
         </div>

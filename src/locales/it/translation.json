@@ -16,7 +16,7 @@
   },
   "table_config": {
     "section_title": "Tabelle salvate",
-    "section_help": "Ogni tabella usa i dati della tabella principale con i filtri e configurazioni applicati",
+    "section_help": "Ogni tabella usa i dati della tabella Source con i filtri e configurazioni applicati",
     "save_button": "Salva tabella filtrata",
     "save": "Salva vista tabella",
     "name_placeholder": "Nome tabella",
@@ -28,8 +28,9 @@
     "confirm_delete": "Vuoi eliminare questa tabella?"
   },
   "view": {
-    "table": "Tabella",
-    "graphs": "Grafici"
+    "table": "Source",
+    "graphs": "Grafici",
+    "saved": "Tabelle"
   },
   "button": {
     "save_chart": "Salva grafico",
