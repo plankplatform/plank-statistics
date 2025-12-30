@@ -10,13 +10,17 @@ import StatHeader from '../components/StatHeader';
 import StatChart from '../components/StatChart';
 import StatTable from '../components/StatTable';
 import SaveChartModal from '../components/SaveChartModal';
+import SaveTableModal from '../components/SaveTableModal';
+import SavedTableView from '../components/SavedTableView';
 import type { ChartModel } from 'ag-grid-community';
 import { useTranslation } from 'react-i18next';
 import type { MenuItemDef } from 'ag-grid-community';
 import ReactDOMServer from 'react-dom/server';
 import { Save } from 'lucide-react';
-import { set } from 'date-fns';
 import type { StatHistoryItem } from '../components/StatChartHeader';
+import AccordionMenu from '@/components/AccordionMenu';
+import RenameTableModal from '../components/RenameTableModal';
+
 import {
   castNumericValues,
   normalizeChartOptions,
@@ -25,8 +29,6 @@ import {
   parseJsonRows,
   normalizeCol,
 } from '@/lib/utils';
-
-import AccordionMenu from '@/components/AccordionMenu';
 
 const saveIconSvg = ReactDOMServer.renderToStaticMarkup(<Save size={14} />);
 
@@ -42,6 +44,13 @@ interface TableGridStateSnapshot {
   rowGroupCols: string[];
   pivotCols: string[];
   valueCols: string[];
+}
+
+interface TableConfigItem {
+  id: number;
+  title: string;
+  grid_state?: unknown;
+  created_at?: string | null;
 }
 
 // Ricostruisce lo stato della griglia ritornado uno "screen" della struttura
@@ -147,6 +156,13 @@ const StatPage = () => {
   const [tableOverride, setTableOverride] = useState<TableHistoryOverride | null>(null);
   const tableHistoryPreviousStateRef = useRef<TableGridStateSnapshot | null>(null);
 
+  // Configurazioni tabelle salvate
+  const [tableConfigs, setTableConfigs] = useState<TableConfigItem[]>([]);
+  const [tableConfigsLoading, setTableConfigsLoading] = useState(false);
+  const [tableConfigsError, setTableConfigsError] = useState<string | null>(null);
+  const [showSaveTableModal, setShowSaveTableModal] = useState(false);
+  const [renameTarget, setRenameTarget] = useState<{ id: number; title: string } | null>(null);
+
   // Menu a tendina laterale
   const [sidebarGroups, setSidebarGroups] = useState<
     { group: string; stats: { id: number; title: string; description?: string }[] }[]
@@ -222,7 +238,7 @@ const StatPage = () => {
     }
   };
 
-  // Gestione selezione della versione della tabella (logica simile a handleHistoryLoad ↑)
+  // Gestione selezione della versione della tabella (logica simile a handleHistoryLoad`)
   const handleTableHistorySelect = (
     item: StatHistoryItem,
     { label }: { index: number; label: string }
@@ -328,8 +344,69 @@ const StatPage = () => {
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2000);
     } catch (err) {
-      console.error('Errore durante il salvataggio:', err);
-      alert('Errore durante il salvataggio del layout');
+      console.error('Error while saving:', err);
+      alert('Error during layout saving');
+    }
+  };
+
+  const handleRenameTableConfig = async (configId: number, nextTitle: string) => {
+    if (!data) return;
+
+    try {
+      await apiFetch(`v1/stats/${data.id}/tableConfigs/${configId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ title: nextTitle }),
+      });
+
+      setTableConfigs((prev) =>
+        prev.map((item) => (item.id === configId ? { ...item, title: nextTitle } : item))
+      );
+    } catch (err) {
+      console.error('Errore durante la modifica della vista:', err);
+      alert('Errore durante la modifica della vista tabella');
+    }
+  };
+
+  const handleConfirmSaveTableConfig = async (title: string) => {
+    const api = gridRef.current?.api;
+    if (!api || !data) return;
+
+    const grid_state = {
+      filters: api.getFilterModel(),
+      columnState: api.getColumnState(),
+      pivotMode: api.isPivotMode(),
+      rowGroupCols: api.getRowGroupColumns().map((c) => c.getColId()),
+      pivotCols: api.getPivotColumns().map((c) => c.getColId()),
+      valueCols: api.getValueColumns().map((c) => c.getColId()),
+    };
+
+    try {
+      await apiFetch(`v1/stats/${data.id}/tableConfigs`, {
+        method: 'POST',
+        body: JSON.stringify({ title, grid_state }),
+      });
+
+      const refreshed = await apiFetch<TableConfigItem[]>(`v1/stats/${data.id}/tableConfigs`);
+      setTableConfigs(Array.isArray(refreshed) ? refreshed : []);
+      setShowSaveTableModal(false);
+    } catch (err) {
+      console.error('Error while saving configuration:', err);
+      alert('Error during configuration saving');
+    }
+  };
+
+  const handleDeleteTableConfig = async (configId: number) => {
+    if (!data) return;
+
+    try {
+      await apiFetch(`v1/stats/${data.id}/tableConfigs/${configId}`, {
+        method: 'DELETE',
+      });
+
+      setTableConfigs((prev) => prev.filter((item) => item.id !== configId));
+    } catch (err) {
+      console.error('Error while deleting the filtered table:', err);
+      alert('Error while deleting the filtered table');
     }
   };
 
@@ -380,7 +457,6 @@ const StatPage = () => {
     setTableOverride(null);
   };
 
-  // Manca setGridIsReady(true) -> ora aggiunto TESTARE
   const handleGridReady = () => {
     applyInitialGridState();
     setGridIsReady(true);
@@ -395,6 +471,11 @@ const StatPage = () => {
     setSelectedTableHistoryLabel(undefined);
     setTableOverride(null);
     tableHistoryPreviousStateRef.current = null;
+
+    setTableConfigs([]);
+    setTableConfigsLoading(false);
+    setTableConfigsError(null);
+    setShowSaveTableModal(false);
   }, [statId]);
 
   useEffect(() => {
@@ -461,6 +542,23 @@ const StatPage = () => {
       .catch(console.error)
       .finally(() => setGraphsLoading(false));
   }, [view, data, savedGraphsCache]);
+
+  useEffect(() => {
+    if (Number.isNaN(statId)) return;
+
+    setTableConfigsLoading(true);
+    setTableConfigsError(null);
+
+    apiFetch<TableConfigItem[]>(`v1/stats/${statId}/tableConfigs`)
+      .then((res) => {
+        setTableConfigs(Array.isArray(res) ? res : []);
+      })
+      .catch((error) => {
+        console.error('Error while fetching table configs:', error);
+        setTableConfigsError(t('table_config.error'));
+      })
+      .finally(() => setTableConfigsLoading(false));
+  }, [statId, t]);
 
   useEffect(() => {
     setSidebarLoading(true);
@@ -573,7 +671,7 @@ const StatPage = () => {
     const sorting = api?.getColumnState() || [];
     console.log('Sorting:', sorting);
     if (!models.length || !api) {
-      alert('Nessun grafico da salvare.');
+      alert('No charts to save');
       return;
     }
 
@@ -596,10 +694,10 @@ const StatPage = () => {
     };
 
     createStatGraph(payload)
-      .then((res) => console.log('Grafico salvato con ID:', res.id))
+      .then((res) => console.log('Chart saved'))
       .catch((err) => {
-        console.error('Errore durante il salvataggio:', err);
-        alert('Errore durante il salvataggio del grafico');
+        console.error('Error while saving:', err);
+        alert('Error during chart saving');
       })
       .finally(() => setShowModal(false));
 
@@ -627,6 +725,7 @@ const StatPage = () => {
         onDownloadCsv={onDownloadCsv}
         onDownloadExcel={onDownloadExcel}
         disableSave={selectedTableHistoryId !== null}
+        onSaveTableConfig={() => setShowSaveTableModal(true)}
         tableHistory={
           data
             ? {
@@ -675,6 +774,53 @@ const StatPage = () => {
               pivotMode={pivotMode}
             />
           </div>
+
+          {view === 'table' && (
+            <div className="mt-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    {t('table_config.section_title')}
+                  </h3>
+                  <p className="text-xs text-gray-500">{t('table_config.section_help')}</p>
+                </div>
+                {/*
+                <Button
+                  className="bg-plank-pink text-white hover:bg-plank-pink/90"
+                  onClick={() => setShowSaveTableModal(true)}
+                  disabled={selectedTableHistoryId !== null}
+                >
+                  {t('table_config.save_button')}
+                </Button>
+              */}
+              </div>
+
+              {tableConfigsLoading ? (
+                <div className="py-4">
+                  <Loader />
+                </div>
+              ) : tableConfigsError ? (
+                <p className="text-xs text-red-500">{tableConfigsError}</p>
+              ) : tableConfigs.length === 0 ? (
+                <p className="text-xs text-gray-500">{t('table_config.empty_state')}</p>
+              ) : (
+                tableConfigs.map((item) => {
+                  const parsedGridState = parseGridState(item.grid_state);
+                  return (
+                    <SavedTableView
+                      key={item.id}
+                      title={item.title}
+                      columns={data.columns}
+                      rows={data.rows}
+                      gridState={parsedGridState}
+                      onDelete={() => handleDeleteTableConfig(item.id)}
+                      onRename={() => setRenameTarget({ id: item.id, title: item.title })}
+                    />
+                  );
+                })
+              )}
+            </div>
+          )}
 
           {view === 'graphs' &&
             (graphsLoading ? (
@@ -725,6 +871,24 @@ const StatPage = () => {
 
       {showModal && lastChartModel && (
         <SaveChartModal onClose={() => setShowModal(false)} onSave={handleConfirmSave} />
+      )}
+
+      {showSaveTableModal && (
+        <SaveTableModal
+          onClose={() => setShowSaveTableModal(false)}
+          onSave={handleConfirmSaveTableConfig}
+        />
+      )}
+
+      {renameTarget && (
+        <RenameTableModal
+          initialTitle={renameTarget.title}
+          onClose={() => setRenameTarget(null)}
+          onSave={(nextTitle) => {
+            handleRenameTableConfig(renameTarget.id, nextTitle);
+            setRenameTarget(null);
+          }}
+        />
       )}
     </div>
   );

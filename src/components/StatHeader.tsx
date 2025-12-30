@@ -1,4 +1,4 @@
-import { ArrowLeft, Save, RotateCcw, Download, Clock } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Download, Clock, Table2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,7 @@ interface StatHeaderProps {
   onDownloadExcel: () => void;
   tableHistory?: TableHistoryControl;
   disableSave?: boolean;
+  onSaveTableConfig: () => void;
 }
 
 const StatHeader = ({
@@ -58,6 +59,7 @@ const StatHeader = ({
   onDownloadExcel,
   tableHistory,
   disableSave = false,
+  onSaveTableConfig,
 }: StatHeaderProps) => {
   const { t } = useTranslation();
 
@@ -220,6 +222,24 @@ const StatHeader = ({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{t('tooltip.save_table')}</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* -- SAVE TABLE CONFIG -- */}
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-10 h-10"
+                      onClick={onSaveTableConfig}
+                      disabled={disableSave}
+                    >
+                      <Table2 className="size-5 text-gray-800" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('table_config.save_button')}</p>
                   </TooltipContent>
                 </Tooltip>
 
