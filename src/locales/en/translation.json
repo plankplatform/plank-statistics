@@ -16,7 +16,7 @@
   },
   "table_config": {
     "section_title": "Saved tables",
-    "section_help": "Each table uses data from the main table with filters and configurations applied",
+    "section_help": "Each table uses data from the Source table with filters and configurations applied",
     "save_button": "Save filtered table",
     "save": "Save table view",
     "name_placeholder": "Table name",
@@ -28,8 +28,9 @@
     "confirm_delete": "Do you want to delete this table?"
   },
   "view": {
-    "table": "Table",
-    "graphs": "Charts"
+    "table": "Source",
+    "graphs": "Charts",
+    "saved": "Tables"
   },
   "button": {
     "save_chart": "Save chart",

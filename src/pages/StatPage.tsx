@@ -127,7 +127,7 @@ const StatPage = () => {
 
   const [data, setData] = useState<StatData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'table' | 'graphs'>('table');
+  const [view, setView] = useState<'table' | 'graphs' | 'saved'>('table');
   const [hasChart, setHasChart] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lastChartModel, setLastChartModel] = useState<ChartModel | null>(null);
@@ -775,14 +775,14 @@ const StatPage = () => {
             />
           </div>
 
-          {view === 'table' && (
+          {view === 'saved' && (
             <div className="mt-8 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-800">
+                  <h3 className="text-base font-semibold text-gray-800">
                     {t('table_config.section_title')}
                   </h3>
-                  <p className="text-xs text-gray-500">{t('table_config.section_help')}</p>
+                  <p className="text-sm text-gray-500">{t('table_config.section_help')}</p>
                 </div>
                 {/*
                 <Button
