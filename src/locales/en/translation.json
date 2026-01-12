@@ -30,7 +30,7 @@
   "view": {
     "table": "Source",
     "graphs": "Charts",
-    "saved": "Tables"
+    "saved": "Views"
   },
   "button": {
     "save_chart": "Save chart",
