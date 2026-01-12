@@ -14,9 +14,23 @@
     "no_title": "No title",
     "invalid_name": "Please enter a valid chart name."
   },
+  "table_config": {
+    "section_title": "Saved tables",
+    "section_help": "Each table uses data from the Source table with filters and configurations applied",
+    "save_button": "Save filtered table",
+    "save": "Save table view",
+    "name_placeholder": "Table name",
+    "invalid_name": "Please enter a valid table name",
+    "empty_state": "No saved tables",
+    "loading": "Loading...",
+    "error": "Error loading saved tables",
+    "rename_title": "Rename table",
+    "confirm_delete": "Do you want to delete this table?"
+  },
   "view": {
-    "table": "Table",
-    "graphs": "Charts"
+    "table": "Source",
+    "graphs": "Charts",
+    "saved": "Views"
   },
   "button": {
     "save_chart": "Save chart",
@@ -57,7 +71,7 @@
     "date_not_available": "Date not available",
     "version": "Version"
   },
-  "history_table":{
+  "history_table": {
     "table_history": "Table history",
     "loading": "Loading...",
     "error": "Error loading chart history",
