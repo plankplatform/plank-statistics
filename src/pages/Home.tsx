@@ -31,6 +31,10 @@ type RawGroupedStats = {
   }[];
 };
 
+type CurrentUserResponse = {
+  capabilities?: { can_access_business_intelligence?: boolean };
+};
+
 const Home = () => {
   const [groups, setGroups] = useState<
     { group: string; stats: { id: number; title: string; description?: string }[] }[]
@@ -42,6 +46,9 @@ const Home = () => {
     {}
   );
   const [loadingStarred, setLoadingStarred] = useState(true);
+
+  const [canBI, setCanBI] = useState<boolean | null>(null);
+
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -106,7 +113,36 @@ const Home = () => {
       .finally(() => setLoadingStarred(false));
   }, []);
 
+  useEffect(() => {
+    apiFetch<CurrentUserResponse>('v1/auth/user')
+      .then((u) => setCanBI(!!u.capabilities?.can_access_business_intelligence))
+      .catch(() => setCanBI(false));
+  }, []);
+
   const loadingPage = loading || loadingStarred;
+
+  const enabled = canBI === true;
+  const biButton = (
+    <div className="flex justify-center mb-5">
+      {enabled ? (
+        <a
+          href="https://www.google.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center px-3 py-2 rounded text-white text-base font-semibold transition-colors bg-[#E6007E] hover:bg-[#0D87E9]"
+        >
+          Business Intelligence
+        </a>
+      ) : (
+        <span
+          aria-disabled="true"
+          className="inline-flex items-center justify-center px-3 py-2 rounded text-white/80 text-base font-semibold bg-gray-300 cursor-not-allowed"
+        >
+          Business Intelligence
+        </span>
+      )}
+    </div>
+  );
 
   if (loadingPage) {
     return (
@@ -120,6 +156,7 @@ const Home = () => {
     <div className="h-screen px-4 md:px-8 py-6 md:py-10 max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-10">
       {/* mobile accordion */}
       <div className="block md:hidden">
+        {biButton}
         {groups.length === 0 ? (
           <div className="text-gray-500 text-sm text-center italic mt-24">{t('stats.empty')}</div>
         ) : (
@@ -151,6 +188,7 @@ const Home = () => {
       {/* desktop accordion */}
       <div className="hidden md:block md:col-span-3 pl-0 md:pl-2 pt-0 md:pt-4">
         <div className="w-full max-w-full md:max-w-[220px]">
+          {biButton}
           {groups.length === 0 ? (
             <div className="text-gray-500 text-sm text-center italic mt-24">{t('stats.empty')}</div>
           ) : (
