@@ -126,7 +126,7 @@ const Home = () => {
     <div className="flex justify-center mb-5">
       {enabled ? (
         <a
-          href="https://www.google.com"
+          href="https://asset.jnjwithme.com/document/Coming%20Soon.pdf"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center px-3 py-2 rounded text-white text-base font-semibold transition-colors bg-[#E6007E] hover:bg-[#0D87E9]"
