@@ -15,6 +15,8 @@ import {
   invalidateStarredGraphs,
 } from '../lib/starredGraphsStore';
 import { useTranslation } from 'react-i18next';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 type RawGroupedStats = {
   [group: string]: {
@@ -126,9 +128,8 @@ const Home = () => {
     <div className="flex justify-center mb-5">
       {enabled ? (
         <a
-          href="https://asset.jnjwithme.com/document/Coming%20Soon.pdf"
-          target="_blank"
-          rel="noopener noreferrer"
+          href={import.meta.env.VITE_BUSINESS_INTELLIGENCE_URL}
+          target="_top"
           className="inline-flex items-center justify-center px-3 py-2 rounded text-white text-base font-semibold transition-colors bg-[#E6007E] hover:bg-[#0D87E9]"
         >
           Business Intelligence
@@ -188,7 +189,16 @@ const Home = () => {
       {/* desktop accordion */}
       <div className="hidden md:block md:col-span-3 pl-0 md:pl-2 pt-0 md:pt-4">
         <div className="w-full max-w-full md:max-w-[220px]">
-          {biButton}
+          {enabled ? (
+            biButton
+          ) : (
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>{biButton}</TooltipTrigger>
+              <TooltipContent>
+                <p>{t('tooltip.business_intelligence')}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
           {groups.length === 0 ? (
             <div className="text-gray-500 text-sm text-center italic mt-24">{t('stats.empty')}</div>
           ) : (
