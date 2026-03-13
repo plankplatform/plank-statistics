@@ -59,7 +59,8 @@
     "save_table": "Save table",
     "reset_table": "Reset table",
     "back": "Back",
-    "load_history": "Load history"
+    "load_history": "Load history",
+    "business_intelligence": "Access denied without permission"
   },
   "history": {
     "chart_history": "Chart history",

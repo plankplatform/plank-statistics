@@ -11,6 +11,15 @@
   --color-plank-blue: #2d2e83;
   --color-plank-pink: #e72175;
   --color-plank-gray: #f9f9f9;
+
+  /* Così riduco tutti i testi presenti di 2px indipendentemente dal "tipo" */
+  --text-shift: -2px;
+  --text-xs: calc(0.75rem + var(--text-shift));
+  --text-sm: calc(0.875rem + var(--text-shift));
+  --text-base: calc(1rem + var(--text-shift));
+  --text-lg: calc(1.125rem + var(--text-shift));
+  --text-xl: calc(1.25rem + var(--text-shift));
+  --text-2xl: calc(1.5rem + var(--text-shift));
 }
 
 html,
@@ -26,14 +35,14 @@ body,
 }
 
 body::-webkit-scrollbar {
- /* display: none;  Chrome, Safari */
+  /* display: none;  Chrome, Safari */
 }
 
 * {
- /* scrollbar-width: none;  Firefox */
+  /* scrollbar-width: none;  Firefox */
 }
 *::-webkit-scrollbar {
- /* display: none;  Chrome, Safari */
+  /* display: none;  Chrome, Safari */
 }
 
 .ag-center-cols-viewport {

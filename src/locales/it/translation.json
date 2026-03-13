@@ -59,7 +59,8 @@
     "save_table": "Salva la tabella",
     "reset_table": "Ripristina stato iniziale",
     "back": "Indietro",
-    "load_history": "Carica storico"
+    "load_history": "Carica storico",
+    "business_intelligence": "Accesso negato senza permesso"
   },
   "history": {
     "chart_history": "Storico grafico",
