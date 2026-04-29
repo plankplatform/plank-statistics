@@ -3,7 +3,7 @@
 require_once dirname(__DIR__, 3) . '/utility/config/config.php';
 
 $cacheBuster = time();
-$currentVersion = '1.0.8';
+$currentVersion = '1.2.9';
 
 if (APP_ENV != 'local') {
   require_once dirname(__DIR__, 3) . '/utility/Api/PlankApiClient.php';
