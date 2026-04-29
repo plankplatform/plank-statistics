@@ -19,7 +19,9 @@ $token = $_SESSION['api_token'] ?? '';
 $tokenExpiration = isset($_SESSION['api_token_expiration']) ? (int) $_SESSION['api_token_expiration'] : null;
 $refreshExpiration = isset($_SESSION['api_refresh_expiration']) ? (int) $_SESSION['api_refresh_expiration'] : null;
 $language = $_SESSION['language'] ?? 'boh';
-$refreshUrl = '/plank/PageEvents/plank_statistics_dashboard/auth_refresh.php';
+$refreshUrl = APP_ENV === 'prod'
+  ? '/plank/PageEvents/plank_statistics_dashboard/auth_refresh.php'
+  : '/plank/plank-statistics/PageEvents/auth_refresh.php';
 
 $bootstrap = [
   'token' => $token,

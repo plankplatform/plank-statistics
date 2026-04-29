@@ -1,5 +1,6 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const APP_ENV = import.meta.env.VITE_APP_ENV;
+const AUTH_REFRESH_URL = import.meta.env.VITE_AUTH_REFRESH_URL;
 
 const TOKEN_KEY = 'apitoken';
 const TOKEN_EXPIRATION_KEY = 'apitoken_expiration';
@@ -124,7 +125,7 @@ async function runRefresh(): Promise<string | null> {
 }
 
 async function refreshViaRunnerSession(): Promise<AuthResponse | null> {
-  const refreshUrl = getRunnerRefreshUrl();
+  const refreshUrl = sessionStorage.getItem(RUNNER_REFRESH_URL_KEY) || AUTH_REFRESH_URL;
 
   if (!refreshUrl) {
     return null;
@@ -171,20 +172,6 @@ async function refreshViaApiToken(): Promise<AuthResponse | null> {
 
   const text = await response.text();
   return text ? JSON.parse(text) : null;
-}
-
-function getRunnerRefreshUrl(): string | null {
-  const configuredUrl = sessionStorage.getItem(RUNNER_REFRESH_URL_KEY);
-
-  if (configuredUrl) {
-    return configuredUrl;
-  }
-
-  if (APP_ENV === 'local') {
-    return null;
-  }
-
-  return new URL('auth_refresh.php', window.location.href).toString();
 }
 
 function getStoredTimestamp(key: string): number | null {
