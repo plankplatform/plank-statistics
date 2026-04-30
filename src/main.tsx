@@ -7,6 +7,7 @@ import './i18n';
 import 'ag-grid-enterprise';
 import { LicenseManager } from 'ag-grid-enterprise';
 import i18n from 'i18next';
+import { storeAuthTokens } from './lib/api';
 
 const licenseKey = import.meta.env.VITE_AG_GRID_LICENSE;
 if (licenseKey) {
@@ -44,7 +45,7 @@ async function setup() {
 
       const data = await response.json();
       if (data.jwt) {
-        sessionStorage.setItem('apitoken', data.jwt);
+        storeAuthTokens(data);
       } else {
         console.error('Failed to fetch API token:', data);
       }

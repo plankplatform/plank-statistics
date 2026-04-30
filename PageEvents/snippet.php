@@ -1,19 +1,35 @@
 <?php
 
-$token = $_SESSION['api_token'] ?? '';
-$language = $_SESSION['language']?? 'boh';
-
-echo '
-  <script>
-    const language = ' . json_encode($language) . ';
-    sessionStorage.setItem("language", language);
-  </script>
-';
+require_once dirname(__DIR__, 3) . '/utility/config/config.php';
 
 $cacheBuster = time();
-$currentVersion = '1.0.8';
+$currentVersion = '1.2.9';
 
-require_once dirname(__DIR__, 3) . '/utility/config/config.php';
+if (APP_ENV != 'local') {
+  require_once dirname(__DIR__, 3) . '/utility/Api/PlankApiClient.php';
+
+  try {
+    (new PlankApiClient())->refreshIfNeeded();
+  } catch (Throwable $e) {
+    error_log('Unable to refresh Plank API token before loading statistics app: ' . $e->getMessage());
+  }
+}
+
+$token = $_SESSION['api_token'] ?? '';
+$tokenExpiration = isset($_SESSION['api_token_expiration']) ? (int) $_SESSION['api_token_expiration'] : null;
+$refreshExpiration = isset($_SESSION['api_refresh_expiration']) ? (int) $_SESSION['api_refresh_expiration'] : null;
+$language = $_SESSION['language'] ?? 'boh';
+$refreshUrl = APP_ENV != 'local'
+  ? '/plank/PageEvents/plank_statistics_dashboard/auth_refresh.php'
+  : '/plank/plank-statistics/PageEvents/auth_refresh.php';
+
+$bootstrap = [
+  'token' => $token,
+  'tokenExpiration' => $tokenExpiration,
+  'refreshExpiration' => $refreshExpiration,
+  'language' => $language,
+  'refreshUrl' => $refreshUrl,
+];
 
 echo '
   <style>
@@ -47,8 +63,23 @@ echo '
   </style>
 
   <script>
-    const token = ' . json_encode($token) . ';
-    sessionStorage.setItem("apitoken", token);
+    const plankAuth = ' . json_encode($bootstrap, JSON_UNESCAPED_SLASHES) . ';
+
+    sessionStorage.setItem("apitoken", plankAuth.token || "");
+    sessionStorage.setItem("language", plankAuth.language || "English");
+    sessionStorage.setItem("api_auth_refresh_url", plankAuth.refreshUrl);
+
+    if (plankAuth.tokenExpiration) {
+      sessionStorage.setItem("apitoken_expiration", String(plankAuth.tokenExpiration));
+    } else {
+      sessionStorage.removeItem("apitoken_expiration");
+    }
+
+    if (plankAuth.refreshExpiration) {
+      sessionStorage.setItem("api_refresh_expiration", String(plankAuth.refreshExpiration));
+    } else {
+      sessionStorage.removeItem("api_refresh_expiration");
+    }
   </script>
 ';
 
