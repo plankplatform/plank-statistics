@@ -1,10 +1,6 @@
 <?php
 
-require_once dirname(__DIR__, 3) . '/utility/config/config.php';
-
-if (session_status() !== PHP_SESSION_ACTIVE) {
-  session_start();
-}
+require_once dirname(__DIR__, 2) . '/include/dbcommon.php';
 
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
