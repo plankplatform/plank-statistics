@@ -20,6 +20,7 @@ import { Save } from 'lucide-react';
 import type { StatHistoryItem } from '../components/StatChartHeader';
 import AccordionMenu from '@/components/AccordionMenu';
 import RenameTableModal from '../components/RenameTableModal';
+import { loadRowsForStat } from '@/lib/statResults';
 
 import {
   castNumericValues,
@@ -480,12 +481,21 @@ const StatPage = () => {
 
   useEffect(() => {
     if (isNaN(statId)) return;
-    setLoading(true);
 
-    apiFetch(`v1/stats/${statId}`)
-      .then((raw: any) => {
+    let cancelled = false;
+
+    const loadStat = async () => {
+      setLoading(true);
+
+      try {
+        const raw: any = await apiFetch(`v1/stats/${statId}`);
+
         const columns = JSON.parse(raw.columns_order || '[]');
-        const rows = castNumericValues(columns, JSON.parse(raw.json_results || '[]'));
+        const rawRows = await loadRowsForStat(raw);
+
+        if (cancelled) return;
+
+        const rows = castNumericValues(columns, rawRows);
 
         setData({
           id: Number(raw.id),
@@ -508,9 +518,20 @@ const StatPage = () => {
         setValueCols(parsedGridState?.valueCols ?? []);
 
         tableHistoryPreviousStateRef.current = null;
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadStat();
+
+    return () => {
+      cancelled = true;
+    };
   }, [statId]);
 
   useEffect(() => {
@@ -708,7 +729,7 @@ const StatPage = () => {
     });
   };
 
-  const graphs = data ? savedGraphsCache[data.id] ?? [] : [];
+  const graphs = data ? (savedGraphsCache[data.id] ?? []) : [];
 
   return (
     <div className="px-6 py-4 w-[95%] mx-auto mb-24">

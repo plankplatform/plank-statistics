@@ -17,6 +17,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { loadRowsForStat } from '@/lib/statResults';
 
 type RawGroupedStats = {
   [group: string]: {
@@ -96,20 +97,32 @@ const Home = () => {
 
         const uniqueStatIds = [...new Set(parsed.map((g) => g.stat_id))];
 
-        return Promise.all(uniqueStatIds.map((id) => apiFetch(`v1/stats/${id}`))).then(
-          (responses) => {
-            const mapping: Record<number, { columns: string[]; rows: any[] }> = {};
+        return Promise.all(
+          uniqueStatIds.map(async (id) => {
+            const raw: any = await apiFetch(`v1/stats/${id}`);
 
-            responses.forEach((raw) => {
-              const columns = JSON.parse(raw.columns_order || '[]');
-              const rows = JSON.parse(raw.json_results || '[]');
-              mapping[raw.id] = { columns, rows };
-            });
+            const columns = JSON.parse(raw.columns_order || '[]');
+            const rows = await loadRowsForStat(raw);
 
-            setStatsById(mapping);
-            cacheStarredGraphs(parsed, mapping);
-          }
-        );
+            return {
+              id: Number(raw.id),
+              columns,
+              rows,
+            };
+          })
+        ).then((responses) => {
+          const mapping: Record<number, { columns: string[]; rows: any[] }> = {};
+
+          responses.forEach((stat) => {
+            mapping[stat.id] = {
+              columns: stat.columns,
+              rows: stat.rows,
+            };
+          });
+
+          setStatsById(mapping);
+          cacheStarredGraphs(parsed, mapping);
+        });
       })
       .catch(console.error)
       .finally(() => setLoadingStarred(false));
