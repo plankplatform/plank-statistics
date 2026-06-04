@@ -1,6 +1,11 @@
 import { apiFetch } from './api';
 
 export type StatRow = Record<string, any>;
+export type StatLoadProgress = {
+  loadedChunks: number;
+  totalChunks: number;
+  percentage: number;
+};
 
 type StatChunkResponse = {
   stat_id: number | string;
@@ -14,6 +19,10 @@ type CachedStatRows = {
   rows: StatRow[];
   cachedAt: number;
   lastexec_time?: string | null;
+};
+
+type LoadRowsForStatOptions = {
+  onChunkProgress?: (progress: StatLoadProgress) => void;
 };
 
 const MAX_CACHED_STATS = 3;
@@ -64,7 +73,10 @@ export function invalidateStatRows(statId?: number | string) {
   statRowsCache.delete(Number(statId));
 }
 
-export async function loadRowsForStat(raw: any): Promise<StatRow[]> {
+export async function loadRowsForStat(
+  raw: any,
+  options: LoadRowsForStatOptions = {}
+): Promise<StatRow[]> {
   const statId = Number(raw?.id);
 
   if (!statId) {
@@ -85,12 +97,26 @@ export async function loadRowsForStat(raw: any): Promise<StatRow[]> {
   } else {
     const chunksCount = Number(raw.chunks_count ?? raw.json_chunks_count ?? 0);
 
+    if (chunksCount > 0) {
+      options.onChunkProgress?.({
+        loadedChunks: 0,
+        totalChunks: chunksCount,
+        percentage: 0,
+      });
+    }
+
     for (let chunk = 1; chunk <= chunksCount; chunk++) {
       const response = await apiFetch<StatChunkResponse>(`v1/stats/${statId}/chunks/${chunk}`);
 
       if (Array.isArray(response.json_results)) {
         rows.push(...response.json_results);
       }
+
+      options.onChunkProgress?.({
+        loadedChunks: chunk,
+        totalChunks: chunksCount,
+        percentage: Math.round((chunk / chunksCount) * 100),
+      });
     }
   }
 
