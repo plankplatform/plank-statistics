@@ -6,6 +6,7 @@ import { AgChartsEnterpriseModule } from 'ag-charts-enterprise';
 import { AgGridReact } from 'ag-grid-react';
 import { apiFetch } from '../lib/api';
 import Loader from '../components/Loader';
+import ProgressLoader from '../components/ProgressLoader';
 import StatHeader from '../components/StatHeader';
 import StatChart from '../components/StatChart';
 import StatTable from '../components/StatTable';
@@ -20,7 +21,7 @@ import { Save } from 'lucide-react';
 import type { StatHistoryItem } from '../components/StatChartHeader';
 import AccordionMenu from '@/components/AccordionMenu';
 import RenameTableModal from '../components/RenameTableModal';
-import { loadRowsForStat } from '@/lib/statResults';
+import { loadRowsForStat, type StatLoadProgress } from '@/lib/statResults';
 
 import {
   castNumericValues,
@@ -128,6 +129,7 @@ const StatPage = () => {
 
   const [data, setData] = useState<StatData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState<StatLoadProgress | null>(null);
   const [view, setView] = useState<'table' | 'graphs' | 'saved'>('table');
   const [hasChart, setHasChart] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -464,6 +466,7 @@ const StatPage = () => {
   };
 
   useEffect(() => {
+    setLoadingProgress(null);
     setTableHistory([]);
     setTableHistoryLoaded(false);
     setTableHistoryLoading(false);
@@ -486,12 +489,19 @@ const StatPage = () => {
 
     const loadStat = async () => {
       setLoading(true);
+      setLoadingProgress(null);
 
       try {
         const raw: any = await apiFetch(`v1/stats/${statId}`);
 
         const columns = JSON.parse(raw.columns_order || '[]');
-        const rawRows = await loadRowsForStat(raw);
+        const rawRows = await loadRowsForStat(raw, {
+          onChunkProgress: (progress) => {
+            if (!cancelled) {
+              setLoadingProgress(progress);
+            }
+          },
+        });
 
         if (cancelled) return;
 
@@ -522,6 +532,7 @@ const StatPage = () => {
         console.error(error);
       } finally {
         if (!cancelled) {
+          setLoadingProgress(null);
           setLoading(false);
         }
       }
@@ -668,7 +679,21 @@ const StatPage = () => {
     });
   }, [data, tableOverride]);
 
-  if (loading) return <Loader />;
+  if (loading) {
+    if (loadingProgress) {
+      return (
+        <ProgressLoader
+          progress={loadingProgress.percentage}
+          label={t('stats.loading_chunks', {
+            loaded: loadingProgress.loadedChunks,
+            total: loadingProgress.totalChunks,
+          })}
+        />
+      );
+    }
+
+    return <Loader />;
+  }
   if (!data) return <p className="text-center text-gray-600 mt-12">{t('stats.no_data')}</p>;
 
   const getCustomChartMenuItems = (params: any): (string | MenuItemDef)[] => {

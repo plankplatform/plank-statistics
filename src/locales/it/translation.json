@@ -3,7 +3,8 @@
     "empty": "Non sono presenti statistiche.",
     "show_menu": "Mostra menu",
     "hide_menu": "Nascondi menu",
-    "no_data": "Statistica non trovata"
+    "no_data": "Statistica non trovata",
+    "loading_chunks": "Caricamento dati {{loaded}}/{{total}}"
   },
   "chart": {
     "empty_state": "Non ci sono grafici salvati per questa statistica.",
