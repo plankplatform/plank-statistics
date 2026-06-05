@@ -496,6 +496,7 @@ const StatPage = () => {
 
         const columns = JSON.parse(raw.columns_order || '[]');
         const rawRows = await loadRowsForStat(raw, {
+          minChunkIntervalMs: 1150,
           onChunkProgress: (progress) => {
             if (!cancelled) {
               setLoadingProgress(progress);

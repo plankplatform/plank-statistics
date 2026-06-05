@@ -22,11 +22,16 @@ type CachedStatRows = {
 };
 
 type LoadRowsForStatOptions = {
+  minChunkIntervalMs?: number;
   onChunkProgress?: (progress: StatLoadProgress) => void;
 };
 
 const MAX_CACHED_STATS = 3;
 const statRowsCache = new Map<number, CachedStatRows>();
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function rememberRows(statId: number, entry: CachedStatRows) {
   if (statRowsCache.has(statId)) {
@@ -96,6 +101,8 @@ export async function loadRowsForStat(
     rows = parseJsonArray<StatRow>(raw?.json_results);
   } else {
     const chunksCount = Number(raw.chunks_count ?? raw.json_chunks_count ?? 0);
+    const minChunkIntervalMs = Math.max(0, options.minChunkIntervalMs ?? 0);
+    let lastChunkStartedAt = 0;
 
     if (chunksCount > 0) {
       options.onChunkProgress?.({
@@ -106,6 +113,16 @@ export async function loadRowsForStat(
     }
 
     for (let chunk = 1; chunk <= chunksCount; chunk++) {
+      if (lastChunkStartedAt > 0 && minChunkIntervalMs > 0) {
+        const elapsed = Date.now() - lastChunkStartedAt;
+        const remainingDelay = minChunkIntervalMs - elapsed;
+
+        if (remainingDelay > 0) {
+          await wait(remainingDelay);
+        }
+      }
+
+      lastChunkStartedAt = Date.now();
       const response = await apiFetch<StatChunkResponse>(`v1/stats/${statId}/chunks/${chunk}`);
 
       if (Array.isArray(response.json_results)) {
