@@ -1,5 +1,4 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const APP_ENV = import.meta.env.VITE_APP_ENV;
 const AUTH_REFRESH_URL = import.meta.env.VITE_AUTH_REFRESH_URL;
 
 const TOKEN_KEY = 'apitoken';
@@ -112,7 +111,7 @@ async function runRefresh(): Promise<string | null> {
     return auth.jwt;
   }
 
-  if (APP_ENV === 'local') {
+  if (import.meta.env.DEV) {
     const localAuth = await refreshViaApiToken();
 
     if (localAuth?.jwt) {

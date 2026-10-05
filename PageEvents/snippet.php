@@ -104,7 +104,7 @@ if(APP_ENV === 'prod') {
   echo '
     <iframe
       id="iframe-host"
-      src="/plank/plank-statistics/dist/index.html?v=' . $cacheBuster . '"
+      src="/plank/plank-statistics/dist-dev/index.html?v=' . $cacheBuster . '"
     ></iframe>
   ';
 }

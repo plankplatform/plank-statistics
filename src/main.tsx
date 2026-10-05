@@ -14,8 +14,6 @@ if (licenseKey) {
   LicenseManager.setLicenseKey(licenseKey);
 }
 
-const env = import.meta.env.VITE_APP_ENV;
-
 if (sessionStorage.getItem('language')) {
   if (sessionStorage.getItem('language') === 'Italian') {
     i18n.changeLanguage('it');
@@ -27,7 +25,7 @@ if (sessionStorage.getItem('language')) {
 }
 
 async function setup() {
-  if (env === 'local') {
+  if (import.meta.env.DEV) {
     if (sessionStorage.getItem('apitoken')) {
       console.log('API token already set in sessionStorage');
     } else {

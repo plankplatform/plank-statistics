@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
     },
     base: env.VITE_BASE_PATH || '/',
     build: {
-      outDir: 'dist',
+      outDir: isDev ? 'dist-dev' : 'dist',
       assetsDir: 'assets',
       emptyOutDir: true,
       rollupOptions: {
